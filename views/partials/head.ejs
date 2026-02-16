@@ -7,3 +7,12 @@
     <title>Jobs List</title>
   </head>
   <body>
+    <h1>The Jobs EJS Application</h1>
+<% if (errors) {
+  errors.forEach((err) => { %>
+    <div>Error: <%= err %></div>
+<% }) } %>
+<% if (info) {
+  info.forEach((msg) => { %>
+    <div>Info: <%= msg %></div>
+<% }) } %>
