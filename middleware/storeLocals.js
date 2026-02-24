@@ -6,6 +6,7 @@ const storeLocals = (req, res, next) => {
   }
   res.locals.info = req.flash("info");
   res.locals.errors = req.flash("error");
+  console.log("STORELOCALS: Errors retrieved from flash:", res.locals.errors);
   next();
 };
 

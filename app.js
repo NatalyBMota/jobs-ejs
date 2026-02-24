@@ -53,7 +53,7 @@ app.use("/sessions", require("./routes/sessionRoutes"));
 
 // secret word handling
 // let secretWord = "syzygy";
-app.get("/secretWord", (req, res) => {
+/* app.get("/secretWord", (req, res) => {
   if (!req.session.secretWord) {
     req.session.secretWord = "syzygy";
   } 
@@ -70,7 +70,11 @@ app.post("/secretWord", (req, res) => {
     req.flash("info", "The secret word was changed.");
   }
   res.redirect("/secretWord");
-});
+}); */
+
+const secretWordRouter = require("./routes/secretWord");
+const auth = require("./middleware/auth");
+app.use("/secretWord", auth, secretWordRouter);
 
 app.use((req, res) => {
   res.status(404).send(`That page (${req.url}) was not found.`);
