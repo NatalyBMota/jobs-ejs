@@ -7,7 +7,7 @@
     <title>Jobs List</title>
   </head>
   <body>
-    <h1>The Jobs EJS Application</h1>
+<%- include("header.ejs") %>
 <% if (errors) {
   errors.forEach((err) => { %>
     <div>Error: <%= err %></div>
