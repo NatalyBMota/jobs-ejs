@@ -4,6 +4,12 @@ require("express-async-errors");
 require("dotenv").config(); // to load the .env file into the process.env object
 const session = require("express-session");
 
+// extra security packages
+const helmet = require('helmet')
+const cors = require('cors')
+const xss = require('xss-clean')
+const rateLimiter = require('express-rate-limit')
+
 const app = express();
 
 const MongoDBStore = require("connect-mongodb-session")(session);
@@ -59,6 +65,9 @@ app.use(require("./middleware/storeLocals"));
 app.get("/", (req, res) => {
   res.render("index");
 });
+app.get("/jobs", (req, res) => {
+  res.render("jobs")
+})
 app.use("/sessions", require("./routes/sessionRoutes"));
 
 const secretWordRouter = require("./routes/secretWord");
