@@ -32,14 +32,28 @@ if (app.get("env") === "production") {
 }
 
 app.use(session(sessionParms));
-app.use(require("connect-flash")());
+const passport = require("passport");
+const passportInit = require("./passport/passportInit");
+
+passportInit();
+app.use(passport.initialize());
 
 app.set("view engine", "ejs");
 app.use(require("body-parser").urlencoded({ extended: true }));
 
+app.use(passport.session());
+app.use(require("connect-flash")());
+app.use(require("./middleware/storeLocals"));
+app.get("/", (req, res) => {
+  res.render("index");
+});
+app.use("/sessions", require("./routes/sessionRoutes"));
+
+
+
 // secret word handling
 // let secretWord = "syzygy";
-app.get("/secretWord", (req, res) => {
+/* app.get("/secretWord", (req, res) => {
   if (!req.session.secretWord) {
     req.session.secretWord = "syzygy";
   } 
@@ -56,7 +70,11 @@ app.post("/secretWord", (req, res) => {
     req.flash("info", "The secret word was changed.");
   }
   res.redirect("/secretWord");
-});
+}); */
+
+const secretWordRouter = require("./routes/secretWord");
+const auth = require("./middleware/auth");
+app.use("/secretWord", auth, secretWordRouter);
 
 app.use((req, res) => {
   res.status(404).send(`That page (${req.url}) was not found.`);
@@ -71,6 +89,7 @@ const port = process.env.PORT || 3000;
 
 const start = async () => {
   try {
+    await require("./db/connect")(process.env.MONGO_URI);
     app.listen(port, () =>
       console.log(`Server is listening on port ${port}...`)
     );
