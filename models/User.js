@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 const bcrypt = require('bcryptjs')
-// const jwt = require('jsonwebtoken')
+const jwt = require('jsonwebtoken')
 
 const UserSchema = new mongoose.Schema({
     name: {
@@ -36,7 +36,7 @@ UserSchema.pre('save', async function() {
 
 /* The instructions for the assigment for lesson 13 say that 'in controllers/sessionController.js, we use the User model.' 'However,' this file 'makes some references to the JWT library.' So, it says that I must edit models/User.js to remove those references in order for User.js to load. This is why I have commented out the createJWT method. */ 
 
-/* UserSchema.methods.createJWT = function () {
+UserSchema.methods.createJWT = function () {
     return jwt.sign(
         { userId: this._id, name: this.name }, 
         process.env.JWT_SECRET, 
@@ -44,7 +44,7 @@ UserSchema.pre('save', async function() {
             expiresIn: process.env.JWT_LIFETIME,
         }
     )
-} */
+}
 
 UserSchema.methods.comparePassword = async function (candidatePassword) {
     const isMatch = await bcrypt.compare(candidatePassword, this.password)
