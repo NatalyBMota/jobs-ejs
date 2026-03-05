@@ -131,12 +131,9 @@ app.use((req, res, next) => {
 });
 
 // Server Rendered Pages with JWT cookie auth
-const authRouter = require("./routes/auth");
 const jobsRouter = require("./routes/jobs");
 const pageAuth = require("./middleware/auth");
 
-app.use("/auth", authLimiter);
-app.use("/auth", authRouter);
 app.use("/jobs", pageAuth, jobsRouter);
 
 // Existing session-based routes
@@ -149,15 +146,6 @@ app.use("/secretWord", pageAuth, secretWordRouter);
 app.get("/", (req, res) => {
   res.render("index");
 });
-
-// API Routes - JSON Endpoints with JWT Bearer auth
-const authenticateUser = require("./middleware/authentication");
-const apiAuthRouter = require("./routes/api/auth");
-const apiJobsRouter = require("./routes/api/jobs");
-
-app.use("/api/v1/auth", authLimiter);
-app.use("/api/v1/auth", apiAuthRouter);
-app.use("/api/v1/jobs", authenticateUser, apiJobsRouter);
 
 // Error Handler Middleware
 const notFoundMiddleware = require("./middleware/not-found");

@@ -5,7 +5,8 @@ const { BadRequestError, NotFoundError } = require('../errors')
 const wantsHTML = (req) => req.accepts('html')
 
 const getAllJobs = async (req, res) => {
-    const jobs = await Job.find({ createdBy: req.user.userId }).sort('createdAt')
+    const userId = req.user._id
+    const jobs = await Job.find({ createdBy: userId }).sort('createdAt')
     if (wantsHTML(req)) {
         return res.status(StatusCodes.OK).render('jobs', { jobs })
     }
@@ -46,7 +47,7 @@ const getNewJobForm = async (req, res) => {
 
 const getEditJobForm = async (req, res) => {
     const {
-        user: { userId },
+        user: { _id: userId },
         params: { id: jobId },
     } = req
 
@@ -70,7 +71,7 @@ const getEditJobForm = async (req, res) => {
 }
 
 const createJob = async (req, res) => {
-    req.body.createdBy = req.user.userId
+    req.body.createdBy = req.user._id
     await Job.create(req.body)
 
     if (wantsHTML(req)) {
@@ -84,7 +85,7 @@ const createJob = async (req, res) => {
 const updateJob = async (req, res) => {
     const {
         body: { company, position },
-        user: { userId },
+        user: { _id: userId },
         params: { id: jobId },
     } = req
 
@@ -111,7 +112,7 @@ const updateJob = async (req, res) => {
 
 const deleteJob = async (req, res) => {
     const {
-        user: { userId },
+        user: { _id: userId },
         params: { id: jobId },
     } = req
 

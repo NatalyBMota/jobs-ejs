@@ -1,7 +1,7 @@
 <%- include("../partials/head.ejs") %>
 <%- include("../partials/header.ejs") %>
   <h2>User Credentials Verification</h2>
-  <form method="POST" action="/auth/login">
+  <form method="POST" action="/sessions/logon">
     <table id="auth-login-table">
         <tr>
             <th colspan="2">Logon</th>
@@ -30,7 +30,7 @@
                 <% } %>
 
                 <button type="submit">logon</button>
-                <a href="/auth/register"><button type="button">register</button></a>
+                <a href="/sessions/register"><button type="button">register</button></a>
             </td>
         </tr>
     </table>

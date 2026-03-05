@@ -3,7 +3,7 @@
   <h2>New User Registration</h2>
   <% if (message) { %><p><%= message %></p><% } %>
 
-  <form method="POST" action="/auth/register">
+  <form method="POST" action="/sessions/register">
     <table id="auth-register-table">
         <tr>
             <th colspan="2">Register</th>
@@ -37,7 +37,7 @@
                 <% } %>
 
                 <button type="submit">register</button>
-                <a href="/auth/login"><button type="button">logon</button></a>
+                <a href="/sessions/logon"><button type="button">logon</button></a>
             </td>
         </tr>
     </table>
