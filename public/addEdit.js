@@ -28,11 +28,11 @@ export const handleAddEdit = () => {
         enableInput(false);
 
         let method = "POST";
-        let url = "/api/v1/jobs";
+        let url = "/jobs";
 
         if (addingJob.textContent === "update") {
-          method = "PATCH";
-          url = `/api/v1/jobs/${addEditDiv.dataset.id}`;
+          method = "POST";
+          url = `/jobs/update/${addEditDiv.dataset.id}`;
         }
 
         try {
@@ -92,7 +92,7 @@ export const showAddEdit = async (jobId) => {
     enableInput(false);
 
     try {
-      const response = await fetch(`/api/v1/jobs/${jobId}`, 
+      const response = await fetch(`/jobs/edit/${jobId}`, 
         {
           method: "GET",
           headers: {

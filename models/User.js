@@ -34,8 +34,6 @@ UserSchema.pre('save', async function() {
 //     return this.name
 // }
 
-/* The instructions for the assigment for lesson 13 say that 'in controllers/sessionController.js, we use the User model.' 'However,' this file 'makes some references to the JWT library.' So, it says that I must edit models/User.js to remove those references in order for User.js to load. This is why I have commented out the createJWT method. */ 
-
 UserSchema.methods.createJWT = function () {
     return jwt.sign(
         { userId: this._id, name: this.name }, 
