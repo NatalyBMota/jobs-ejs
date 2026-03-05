@@ -1,0 +1,38 @@
+<%- include("../partials/head.ejs") %>
+<%- include("../partials/header.ejs") %>
+  <h2>User Credentials Verification</h2>
+  <form method="POST" action="/sessions/logon">
+    <table id="auth-login-table">
+        <tr>
+            <th colspan="2">Logon</th>
+        </tr>
+
+        <% if (message) { %>
+            <tr>
+                <td colspan="2"><%= message %></td>
+            </tr>
+        <% } %>
+
+        <tr>
+            <td><label for="email">email:</label></td>
+            <td><input type="email" id="email" name="email" required /></td>
+        </tr>
+
+        <tr>
+            <td><label for="password">password:</label></td>
+            <td><input type="password" id="password" name="password" required /></td>
+        </tr>
+
+        <tr>
+            <td colspan="2">
+                <% if (locals._csrf) { %>
+                    <input type="hidden" name="_csrf" value="<%= locals._csrf %>" />
+                <% } %>
+
+                <button type="submit">logon</button>
+                <a href="/sessions/register"><button type="button">register</button></a>
+            </td>
+        </tr>
+    </table>
+  </form>
+<%- include("../partials/footer.ejs") %>

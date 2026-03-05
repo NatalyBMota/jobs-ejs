@@ -21,10 +21,34 @@ export const handleJobs = () => {
   jobsTable = document.getElementById("jobs-table");
   jobsTableHeader = document.getElementById("jobs-table-header");
 
-  jobsDiv.addEventListener("click", (e) => {
+  jobsDiv.addEventListener("click", async (e) => {
     if (inputEnabled && e.target.nodeName === "BUTTON") {
-      if (e.target === addJob) {
+      /* if (e.target === addJob) {
         showAddEdit(null);
+      } else if (e.target === logoff) { */
+      if (e.target === addJob) {
+        try {
+          enableInput(false);
+
+          const response = await fetch("/jobs/new", {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          if (response.status === 200) {
+            showAddEdit(null);
+          } else {
+            const data = await response.json();
+            message.textContent = data.msg;
+          }
+        } catch (err) {
+          console.log(err);
+          message.textContent = "A communication error occurred.";
+        }
+        enableInput(true);
       } else if (e.target === logoff) {
         setToken(null);
 
@@ -49,7 +73,7 @@ export const showJobs = async () => {
   try {
     enableInput(false);
 
-    const response = await fetch("/api/v1/jobs", {
+    const response = await fetch("/jobs", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

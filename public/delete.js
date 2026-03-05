@@ -14,8 +14,10 @@ export const deleteJob = async (jobId) => {
     } else {
         try {
             console.log("Trying to delete job")
-            let method = "DELETE"
-            let url = `/api/v1/jobs/${jobId}`
+            // let method = "DELETE"
+            // let url = `/jobs/${jobId}`
+            let method = "POST"
+            let url = `/jobs/delete/${jobId}`
 
             const response = await fetch(url, 
                 {

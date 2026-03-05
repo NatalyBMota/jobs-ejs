@@ -10,17 +10,20 @@ router.get("/", (req, res) => {
 });
 
 router.post("/", (req, res) => {
-  if (req.body.secretWord.toUpperCase()[0] == "P") {
+  const nextWord = (req.body.secretWord || "").trim();
+
+  if (!nextWord) {
+    req.flash("error", "Please enter a secret word.");
+  } else if (nextWord.toUpperCase()[0] == "P") {
     req.flash("error", "That word won't work!");
     req.flash("error", "You can't use words that start with p.");
   } else {
-    req.session.secretWord = req.body.secretWord;
+    req.session.secretWord = nextWord;
     req.flash("info", "The secret word was changed.");
   }
 
-  refreshToken(req,res);
+  refreshToken(req, res);
   res.redirect("/secretWord");
-  // res.redirect("/");
 });
 
 module.exports = router;

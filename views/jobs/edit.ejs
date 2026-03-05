@@ -1,0 +1,40 @@
+<%- include("../partials/head.ejs") %>
+<%- include("../partials/header.ejs") %>
+  <h2>edit job</h2>
+  <% if (message) { %><p><%= message %></p><% } %>
+
+  <form method="POST" action="/jobs/update/<%= job._id %>">
+  <table id="jobs-form-table">
+    <tr>
+      <th colspan="2">Edit Job</th>
+    </tr>
+    <tr>
+      <td><label for="company">company:</label></td>
+      <td><input type="text" id="company" name="company" value="<%= job.company %>" required /></td>
+    </tr>
+    <tr>
+      <td><label for="position">position:</label></td>
+      <td><input type="text" id="position" name="position" value="<%= job.position %>" required /></td>
+    </tr>
+    <tr>
+      <td><label for="status">status:</label></td>
+      <td>
+        <select id="status" name="status">
+          <option value="pending" <%= job.status === 'pending' ? 'selected' : '' %>>pending</option>
+          <option value="interview" <%= job.status === 'interview' ? 'selected' : '' %>>interview</option>
+          <option value="declined" <%= job.status === 'declined' ? 'selected' : '' %>>declined</option>
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="2">
+        <% if (locals._csrf) { %>
+          <input type="hidden" name="_csrf" value="<%= locals._csrf %>" />
+        <% } %>
+        <button type="submit">update</button>
+        <a href="/jobs"><button type="button">cancel</button></a>
+      </td>
+    </tr>
+  </table>
+</form>
+<%- include("../partials/footer.ejs") %>
