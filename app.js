@@ -28,22 +28,55 @@ const { csrf, getToken } = require("host-csrf");
 const connectDB = require("./db/connect");
 
 const app = express();
+app.disable("x-powered-by");
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 app.set("trust proxy", 1);
 
 // Security Middleware - Global
-app.use(
+/* app.use(
   rateLimiter({
     windowMs: 15 * 60 * 1000,
     limit: 100,
   })
-);
+); */
+const globalLimiter = rateLimiter({
+  windowMs: 15 * 60 * 1000,
+  limit: 100,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: { msg: "Too many requests, please try again later." },
+});
+
+const authLimiter = rateLimiter({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: { msg: "Too many authentication attempts, please try again later." },
+});
+
+app.use(globalLimiter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser(process.env.SESSION_SECRET));
-app.use(helmet());
+// app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", "data:"],
+        objectSrc: ["'none'"],
+        upgradeInsecureRequests: [],
+      },
+    },
+    referrerPolicy: { policy: "no-referrer" },
+  })
+);
 app.use(cors());
 app.use(xss());
 
@@ -102,10 +135,12 @@ const authRouter = require("./routes/auth");
 const jobsRouter = require("./routes/jobs");
 const pageAuth = require("./middleware/auth");
 
+app.use("/auth", authLimiter);
 app.use("/auth", authRouter);
 app.use("/jobs", pageAuth, jobsRouter);
 
 // Existing session-based routes
+app.use("/sessions", authLimiter);
 app.use("/sessions", require("./routes/sessionRoutes"));
 
 const secretWordRouter = require("./routes/secretWord");
@@ -120,6 +155,7 @@ const authenticateUser = require("./middleware/authentication");
 const apiAuthRouter = require("./routes/api/auth");
 const apiJobsRouter = require("./routes/api/jobs");
 
+app.use("/api/v1/auth", authLimiter);
 app.use("/api/v1/auth", apiAuthRouter);
 app.use("/api/v1/jobs", authenticateUser, apiJobsRouter);
 
