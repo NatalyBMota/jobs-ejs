@@ -15,7 +15,7 @@ const getAllJobs = async (req, res) => {
 
 const getJob = async (req, res) => {
     const {
-        user: { userId },
+        user: { _id: userId },
         params: { id: jobId },
     } = req
 
@@ -96,7 +96,7 @@ const updateJob = async (req, res) => {
     const job = await Job.findByIdAndUpdate(
         { _id: jobId, createdBy: userId },
         req.body,
-        { new: true, runValidators: true }
+        { returnDocument: 'after', runValidators: true }
     )
 
     if (!job) {

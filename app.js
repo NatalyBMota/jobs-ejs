@@ -1,6 +1,9 @@
 const express = require("express");
 require("express-async-errors");
-require("dotenv").config();
+require("dotenv").config({ quiet: true });
+if (process.env.NODE_ENV !== "production") {
+  process.env.XS_COOKIE_DEVELOPMENT_MODE = "true";
+}
 if (!process.env.SESSION_SECRET) {
   throw new Error("SESSION_SECRET is required");
 }
@@ -119,7 +122,7 @@ const passportInit = require("./passport/passportInit");
 passportInit();
 app.use(passport.initialize());
 app.use(passport.session());
-app.use(require("connect-flash")());
+app.use(require("./middleware/flash"));
 app.use(require("./middleware/storeLocals"));
 
 app.use(express.static("public"));
@@ -159,7 +162,17 @@ const port = process.env.PORT || 3000;
 const start = async () => {
   try {
     await connectDB(process.env.MONGO_URI);
-    app.listen(port, () => console.log(`Server is listening on port ${port}...`));
+    const server = app.listen(port, () => {
+      console.log(`Server is listening on port ${port}...`);
+    });
+
+    server.on("error", (error) => {
+      if (error.code === "EADDRINUSE") {
+        console.log(`Port ${port} is already in use.`);
+        return;
+      }
+      console.log(error);
+    });
   } catch (error) {
     console.log(error);
   }
