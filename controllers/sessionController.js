@@ -1,5 +1,6 @@
 const User = require("../models/User");
 const parseVErr = require("../util/parseValidationErr");
+const { clearToken, refreshToken } = require("host-csrf");
 
 const registerShow = (req, res) => {
   res.render("register");
@@ -30,12 +31,14 @@ const logoff = (req, res) => {
     if (err) {
       console.log(err);
     }
+    clearToken(req,res);
     res.redirect("/");
   });
 };
 
 const logonShow = (req, res) => {
   if (req.user) {
+    refreshToken(req,res);
     return res.redirect("/");
   }
   res.render("logon");
