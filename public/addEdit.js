@@ -10,29 +10,85 @@ import { showJobs } from "./jobs.js";
 let addEditDiv = null;
 let company = null;
 let position = null;
-let status = null;
+let month = null;
 let addingJob = null;
 let editCancel = null;
+let day = null;
 
 export const handleAddEdit = () => {
   addEditDiv = document.getElementById("edit-job");
   company = document.getElementById("company");
   position = document.getElementById("position");
-  status = document.getElementById("status");
+  month = document.getElementById("month");
+  day = document.getElementById("day");
   addingJob = document.getElementById("adding-job");
   editCancel = document.getElementById("edit-cancel");
+
+  const daysInMonth = {
+    January: 31,
+    February: 28,
+    March: 31,
+    April: 30,
+    May: 31,
+    June: 30,
+    July: 31,
+    August: 31,
+    September: 30,
+    October: 31,
+    November: 30,
+    December: 31,
+  };
+
+  const validateDay = () => {
+    const max = daysInMonth[month.value] || 31;
+    day.max = String(max);
+
+    if (day.value === "") {
+      day.setCustomValidity("Please enter a day");
+      return false;
+    }
+
+    const value = Number(day.value);
+
+    if (!Number.isInteger(value)) {
+      day.setCustomValidity("Day must be a whole number");
+      return false;
+    }
+
+    if (value < 1 || value > max) {
+      day.setCustomValidity(`Please enter a day from 1 to ${max} for ${month.value}`);
+      return false;
+    }
+
+    day.setCustomValidity("");
+    return true;
+  };
+
+  month.addEventListener("change", validateDay);
+  day.addEventListener("input", validateDay);
+  validateDay();
 
   addEditDiv.addEventListener("click", async (e) => {
     if (inputEnabled && e.target.nodeName === "BUTTON") {
       if (e.target === addingJob) {
+        if (!validateDay()) {
+          day.reportValidity();
+          return;
+        }
+
         enableInput(false);
 
         let method = "POST";
-        let url = "/jobs";
+        let url = "/friendsBday";
 
         if (addingJob.textContent === "update") {
           method = "POST";
-          url = `/jobs/update/${addEditDiv.dataset.id}`;
+          url = `/friendsBday/update/${addEditDiv.dataset.id}`;
+        }
+
+        if (!validateDay()) {
+          enableInput(true);
+          return;
         }
 
         try {
@@ -45,7 +101,8 @@ export const handleAddEdit = () => {
             body: JSON.stringify({
               company: company.value,
               position: position.value,
-              status: status.value,
+              month: month.value,
+              day: day.value,
             }),
           });
 
@@ -61,7 +118,8 @@ export const handleAddEdit = () => {
 
             company.value = "";
             position.value = "";
-            status.value = "pending";
+            month.value = "January";
+            day.value = "1";
             showJobs();
           } else {
             message.textContent = data.msg;
@@ -83,7 +141,8 @@ export const showAddEdit = async (jobId) => {
   if (!jobId) {
     company.value = "";
     position.value = "";
-    status.value = "pending";
+    month.value = "January";
+    day.value = "1";
     addingJob.textContent = "add";
     message.textContent = "";
 
@@ -92,7 +151,7 @@ export const showAddEdit = async (jobId) => {
     enableInput(false);
 
     try {
-      const response = await fetch(`/jobs/edit/${jobId}`, 
+      const response = await fetch(`/friendsBday/edit/${jobId}`, 
         {
           method: "GET",
           headers: {
@@ -106,7 +165,8 @@ export const showAddEdit = async (jobId) => {
       if (response.status === 200) {
         company.value = data.job.company;
         position.value = data.job.position;
-        status.value = data.job.status;
+        month.value = data.job.status;
+        day.value = data.job.day;
         addingJob.textContent = "update";
         message.textContent = "";
         addEditDiv.dataset.id = jobId;

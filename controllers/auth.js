@@ -39,7 +39,7 @@ const register = async (req, res) => {
 
     if (isFormRequest(req)) {
         attachTokenCookie(res, token)
-        return res.redirect('/jobs')
+        return res.redirect('/friendsBday')
     }
 
     res.status(StatusCodes.CREATED).json({ user: { name: user.name }, token })

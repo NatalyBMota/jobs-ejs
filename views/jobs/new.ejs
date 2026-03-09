@@ -3,38 +3,52 @@
   <h2>Create a New Entry</h2>
   <% if (message) { %><p><%= message %></p><% } %>
 
-  <form method="POST" action="/jobs">
+  <form method="POST" action="/friendsBday">
     <table id="jobs-form-table">
         <tr>
-        <th colspan="2">Add Job</th>
+          <th colspan="2">Add Friend and Birthday</th>
         </tr>
         <tr>
-        <td><label for="company">company:</label></td>
-        <td><input type="text" id="company" name="company" required /></td>
+          <td><label for="company">First Name:</label></td>
+          <td><input type="text" id="company" name="company" required /></td>
         </tr>
         <tr>
-        <td><label for="position">position:</label></td>
-        <td><input type="text" id="position" name="position" required /></td>
+        <td><label for="position">Last Name:</label></td>
+          <td><input type="text" id="position" name="position" required /></td>
         </tr>
         <tr>
-        <td><label for="status">status:</label></td>
-        <td>
-            <select id="status" name="status">
-            <option value="pending">pending</option>
-            <option value="interview">interview</option>
-            <option value="declined">declined</option>
-            </select>
-        </td>
+          <td><label for="month">Month:</label></td>
+          <td>
+              <select id="month" name="month">
+                <option value="January">January</option>
+                <option value="February">February</option>
+                <option value="March">March</option>
+                <option value="April">April</option>
+                <option value="May">May</option>
+                <option value="June">June</option>
+                <option value="July">July</option>
+                <option value="August">August</option>
+                <option value="September">September</option>
+                <option value="October">October</option>
+                <option value="November">November</option>
+                <option value="December">December</option>
+              </select>
+          </td>
         </tr>
         <tr>
-        <td colspan="2">
-            <% if (locals._csrf) { %>
-            <input type="hidden" name="_csrf" value="<%= locals._csrf %>" />
-            <% } %>
-            <button type="submit">add</button>
-            <a href="/jobs"><button type="button">cancel</button></a>
-        </td>
+          <td><label for="day">Day (numeric):</label></td>
+          <td><input type="number" id="day" name="day" min="1" max="31" step="1" required /></td>
+        </tr>
+        <tr>
+          <td colspan="2">
+              <% if (locals._csrf) { %>
+              <input type="hidden" name="_csrf" value="<%= locals._csrf %>" />
+              <% } %>
+              <button type="submit">add</button>
+              <a href="/friendsBday"><button type="button">cancel</button></a>
+          </td>
         </tr>
     </table>
   </form>
+  <script src="/birthdayValidation.js"></script>
 <%- include("../partials/footer.ejs") %>

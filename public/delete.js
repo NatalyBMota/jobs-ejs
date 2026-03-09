@@ -5,19 +5,17 @@ import {
 } from "./index.js";
 import { showJobs } from "./jobs.js";
 
-export const deleteJob = async (jobId) => {
+export const deleteFriendBday = async (jobId) => {
     enableInput(false);
-    console.log("Delete button clicked and deleteJob called.")
+    console.log("Delete button clicked and deleteFriendBday called.")
     console.log("Job ID:" , jobId)
     if (!jobId) {
         console.log("No job ID provided")
     } else {
         try {
             console.log("Trying to delete job")
-            // let method = "DELETE"
-            // let url = `/jobs/${jobId}`
             let method = "POST"
-            let url = `/jobs/delete/${jobId}`
+            let url = `/friendsBday/delete/${jobId}`
 
             const response = await fetch(url, 
                 {

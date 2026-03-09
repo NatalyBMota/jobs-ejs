@@ -8,7 +8,7 @@ import {
 } from "./index.js";
 import { showLoginRegister } from "./loginRegister.js";
 import { showAddEdit } from "./addEdit.js";
-import { deleteJob } from "./delete.js";
+import { deleteFriendBday } from "./delete.js";
 
 let jobsDiv = null;
 let jobsTable = null;
@@ -30,7 +30,7 @@ export const handleJobs = () => {
         try {
           enableInput(false);
 
-          const response = await fetch("/jobs/new", {
+          const response = await fetch("/friendsBday/new", {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
@@ -62,8 +62,7 @@ export const handleJobs = () => {
         showAddEdit(e.target.dataset.id);
       } else if (e.target.classList.contains("deleteButton")) {
         // console.log("Delete button clicked")
-        deleteJob(e.target.dataset.id);
-        // deleteJob();
+        deleteFriendBday(e.target.dataset.id);
       }
     }
   });
@@ -73,7 +72,7 @@ export const showJobs = async () => {
   try {
     enableInput(false);
 
-    const response = await fetch("/jobs", {
+    const response = await fetch("/friendsBday", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -99,6 +98,7 @@ export const showJobs = async () => {
             <td>${data.jobs[i].company}</td>
             <td>${data.jobs[i].position}</td>
             <td>${data.jobs[i].status}</td>
+            <td>${data.jobs[i].day}</td>
             <div>${editButton}${deleteButton}</div>`;
 
           rowEntry.innerHTML = rowHTML;

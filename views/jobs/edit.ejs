@@ -3,7 +3,7 @@
   <h2>edit job</h2>
   <% if (message) { %><p><%= message %></p><% } %>
 
-  <form method="POST" action="/jobs/update/<%= job._id %>">
+  <form method="POST" action="/friendsBday/update/<%= job._id %>">
   <table id="jobs-form-table">
     <tr>
       <th colspan="2">Edit Job</th>
@@ -17,14 +17,27 @@
       <td><input type="text" id="position" name="position" value="<%= job.position %>" required /></td>
     </tr>
     <tr>
-      <td><label for="status">status:</label></td>
+      <td><label for="month">Month:</label></td>
       <td>
-        <select id="status" name="status">
-          <option value="pending" <%= job.status === 'pending' ? 'selected' : '' %>>pending</option>
-          <option value="interview" <%= job.status === 'interview' ? 'selected' : '' %>>interview</option>
-          <option value="declined" <%= job.status === 'declined' ? 'selected' : '' %>>declined</option>
+        <select id="month" name="month">
+          <option value="January" <%= job.status === 'January' ? 'selected' : '' %>>January</option>
+          <option value="February" <%= job.status === 'February' ? 'selected' : '' %>>February</option>
+          <option value="March" <%= job.status === 'March' ? 'selected' : '' %>>March</option>
+          <option value="April" <%= job.status === 'April' ? 'selected' : '' %>>April</option>
+          <option value="May" <%= job.status === 'May' ? 'selected' : '' %>>May</option>
+          <option value="June" <%= job.status === 'June' ? 'selected' : '' %>>June</option>
+          <option value="July" <%= job.status === 'July' ? 'selected' : '' %>>July</option>
+          <option value="August" <%= job.status === 'August' ? 'selected' : '' %>>August</option>
+          <option value="September" <%= job.status === 'September' ? 'selected' : '' %>>September</option>
+          <option value="October" <%= job.status === 'October' ? 'selected' : '' %>>October</option>
+          <option value="November" <%= job.status === 'November' ? 'selected' : '' %>>November</option>
+          <option value="December" <%= job.status === 'December' ? 'selected' : '' %>>December</option>
         </select>
       </td>
+    </tr>
+    <tr>
+      <td><label for="day">Day (numeric):</label></td>
+      <td><input type="number" id="day" name="day" min="1" max="31" step="1" value="<%= job.day %>" required /></td>
     </tr>
     <tr>
       <td colspan="2">
@@ -32,9 +45,10 @@
           <input type="hidden" name="_csrf" value="<%= locals._csrf %>" />
         <% } %>
         <button type="submit">update</button>
-        <a href="/jobs"><button type="button">cancel</button></a>
+        <a href="/friendsBday"><button type="button">cancel</button></a>
       </td>
     </tr>
   </table>
 </form>
+<script src="/birthdayValidation.js"></script>
 <%- include("../partials/footer.ejs") %>

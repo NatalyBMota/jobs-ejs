@@ -137,7 +137,7 @@ app.use((req, res, next) => {
 const jobsRouter = require("./routes/jobs");
 const pageAuth = require("./middleware/auth");
 
-app.use("/jobs", pageAuth, jobsRouter);
+app.use("/friendsBday", pageAuth, jobsRouter);
 
 // Existing session-based routes
 app.use("/sessions", authLimiter);
