@@ -1,4 +1,4 @@
-const Job = require('../models/Job')
+const Job = require('../models/FriendsBdays')
 const { StatusCodes } = require('http-status-codes')
 const { BadRequestError, NotFoundError } = require('../errors')
 
@@ -52,7 +52,7 @@ const getAllFriendsBdays = async (req, res) => {
             birthdayDay: job.day,
         }))
 
-        return res.status(StatusCodes.OK).render('jobs', { friends })
+        return res.status(StatusCodes.OK).render('friendsBdays', { friends })
     }
     res.status(StatusCodes.OK).json({ jobs, count: jobs.length })
 }

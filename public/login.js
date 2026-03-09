@@ -7,7 +7,7 @@ import {
   setToken,
 } from "./index.js";
 import { showLoginRegister } from "./loginRegister.js";
-import { showJobs } from "./jobs.js";
+import { showJobs } from "./friendsBdays.js";
 
 let loginDiv = null;
 let email = null;

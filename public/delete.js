@@ -3,7 +3,7 @@ import {
   token,
   enableInput,
 } from "./index.js";
-import { showJobs } from "./jobs.js";
+import { showJobs } from "./friendsBdays.js";
 
 export const deleteFriendBday = async (jobId) => {
     enableInput(false);
