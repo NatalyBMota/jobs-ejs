@@ -7,7 +7,7 @@ const {
     getAllFriendsBdays,
     updateFriendBday,  
     getFriendsBdays, 
-} = require('../../controllers/jobs')
+} = require('../../controllers/friendsBdays')
 
 router.route('/').post(createFriendBday).get(getAllFriendsBdays)
 router.route('/:id').get(getFriendsBdays).delete(deleteFriendBday).patch(updateFriendBday)

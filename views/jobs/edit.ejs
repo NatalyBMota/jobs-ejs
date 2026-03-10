@@ -9,35 +9,35 @@
       <th colspan="2">Edit Job</th>
     </tr>
     <tr>
-      <td><label for="company">company:</label></td>
-      <td><input type="text" id="company" name="company" value="<%= job.company %>" required /></td>
+      <td><label for="firstName">First Name:</label></td>
+      <td><input type="text" id="firstName" name="firstName" value="<%= job.firstName %>" required /></td>
     </tr>
     <tr>
-      <td><label for="position">position:</label></td>
-      <td><input type="text" id="position" name="position" value="<%= job.position %>" required /></td>
+      <td><label for="lastName">Last Name:</label></td>
+      <td><input type="text" id="lastName" name="lastName" value="<%= job.lastName %>" required /></td>
     </tr>
     <tr>
       <td><label for="month">Month:</label></td>
       <td>
         <select id="month" name="month">
-          <option value="January" <%= job.status === 'January' ? 'selected' : '' %>>January</option>
-          <option value="February" <%= job.status === 'February' ? 'selected' : '' %>>February</option>
-          <option value="March" <%= job.status === 'March' ? 'selected' : '' %>>March</option>
-          <option value="April" <%= job.status === 'April' ? 'selected' : '' %>>April</option>
-          <option value="May" <%= job.status === 'May' ? 'selected' : '' %>>May</option>
-          <option value="June" <%= job.status === 'June' ? 'selected' : '' %>>June</option>
-          <option value="July" <%= job.status === 'July' ? 'selected' : '' %>>July</option>
-          <option value="August" <%= job.status === 'August' ? 'selected' : '' %>>August</option>
-          <option value="September" <%= job.status === 'September' ? 'selected' : '' %>>September</option>
-          <option value="October" <%= job.status === 'October' ? 'selected' : '' %>>October</option>
-          <option value="November" <%= job.status === 'November' ? 'selected' : '' %>>November</option>
-          <option value="December" <%= job.status === 'December' ? 'selected' : '' %>>December</option>
+          <option value="January" <%= job.birthdayMonth === 'January' ? 'selected' : '' %>>January</option>
+          <option value="February" <%= job.birthdayMonth === 'February' ? 'selected' : '' %>>February</option>
+          <option value="March" <%= job.birthdayMonth === 'March' ? 'selected' : '' %>>March</option>
+          <option value="April" <%= job.birthdayMonth === 'April' ? 'selected' : '' %>>April</option>
+          <option value="May" <%= job.birthdayMonth === 'May' ? 'selected' : '' %>>May</option>
+          <option value="June" <%= job.birthdayMonth === 'June' ? 'selected' : '' %>>June</option>
+          <option value="July" <%= job.birthdayMonth === 'July' ? 'selected' : '' %>>July</option>
+          <option value="August" <%= job.birthdayMonth === 'August' ? 'selected' : '' %>>August</option>
+          <option value="September" <%= job.birthdayMonth === 'September' ? 'selected' : '' %>>September</option>
+          <option value="October" <%= job.birthdayMonth === 'October' ? 'selected' : '' %>>October</option>
+          <option value="November" <%= job.birthdayMonth === 'November' ? 'selected' : '' %>>November</option>
+          <option value="December" <%= job.birthdayMonth === 'December' ? 'selected' : '' %>>December</option>
         </select>
       </td>
     </tr>
     <tr>
       <td><label for="day">Day (numeric):</label></td>
-      <td><input type="number" id="day" name="day" min="1" max="31" step="1" value="<%= job.day %>" required /></td>
+      <td><input type="number" id="day" name="day" min="1" max="31" step="1" value="<%= job.birthdayDay %>" required /></td>
     </tr>
     <tr>
       <td colspan="2">

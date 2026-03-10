@@ -5,11 +5,11 @@ import {
   token,
   enableInput,
 } from "./index.js";
-import { showJobs } from "./jobs.js";
+import { showFriendsBdays } from "./friendsBdays.js";
 
 let addEditDiv = null;
-let company = null;
-let position = null;
+let firstName = null;
+let lastName = null;
 let month = null;
 let addingJob = null;
 let editCancel = null;
@@ -17,8 +17,8 @@ let day = null;
 
 export const handleAddEdit = () => {
   addEditDiv = document.getElementById("edit-job");
-  company = document.getElementById("company");
-  position = document.getElementById("position");
+  firstName = document.getElementById("firstName");
+  lastName = document.getElementById("lastName");
   month = document.getElementById("month");
   day = document.getElementById("day");
   addingJob = document.getElementById("adding-job");
@@ -99,8 +99,8 @@ export const handleAddEdit = () => {
               Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({
-              company: company.value,
-              position: position.value,
+              firstName: firstName.value,
+              lastName: lastName.value,
               month: month.value,
               day: day.value,
             }),
@@ -116,11 +116,11 @@ export const handleAddEdit = () => {
               message.textContent = "The job entry was created.";
             }
 
-            company.value = "";
-            position.value = "";
+            firstName.value = "";
+            lastName.value = "";
             month.value = "January";
             day.value = "1";
-            showJobs();
+            showFriendsBdays();
           } else {
             message.textContent = data.msg;
           }
@@ -131,7 +131,7 @@ export const handleAddEdit = () => {
         enableInput(true);
       } else if (e.target === editCancel) {
         message.textContent = "";
-        showJobs();
+        showFriendsBdays();
       }
     }
   });
@@ -139,8 +139,8 @@ export const handleAddEdit = () => {
 
 export const showAddEdit = async (jobId) => {
   if (!jobId) {
-    company.value = "";
-    position.value = "";
+    firstName.value = "";
+    lastName.value = "";
     month.value = "January";
     day.value = "1";
     addingJob.textContent = "add";
@@ -163,10 +163,10 @@ export const showAddEdit = async (jobId) => {
 
       const data = await response.json();
       if (response.status === 200) {
-        company.value = data.job.company;
-        position.value = data.job.position;
-        month.value = data.job.status;
-        day.value = data.job.day;
+        firstName.value = data.job.firstName;
+        lastName.value = data.job.lastName;
+        month.value = data.job.birthdayMonth;
+        day.value = data.job.birthdayDay;
         addingJob.textContent = "update";
         message.textContent = "";
         addEditDiv.dataset.id = jobId;
@@ -174,13 +174,13 @@ export const showAddEdit = async (jobId) => {
         setDiv(addEditDiv);
       } else {
         // might happen if the list has been updated since last display
-        message.textContent = "The jobs entry was not found";
-        showJobs();
+        message.textContent = "The friends' birthday entry was not found";
+        showFriendsBdays();
       }
     } catch (err) {
       console.log(err);
       message.textContent = "A communications error has occurred.";
-      showJobs();
+      showFriendsBdays();
     }
 
     enableInput(true);

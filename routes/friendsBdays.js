@@ -8,7 +8,7 @@ const {
     getNewFriendBdayForm,
     getEditFriendBdayForm,
     updateFriendBday,
-} = require('../controllers/jobs')
+} = require('../controllers/friendsBdays')
 
 router.route('/').post(createFriendBday).get(getAllFriendsBdays)
 router.route('/new').get(getNewFriendBdayForm)
