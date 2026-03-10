@@ -178,8 +178,8 @@ const getFriendsBdays = async (req, res) => {
 
 const getNewFriendBdayForm = async (req, res) => {
     if (wantsHTML(req)) {
-        return res.status(StatusCodes.OK).render('jobs/new', {
-            pageTitle: 'add job',
+        return res.status(StatusCodes.OK).render('friendBdays/new', {
+            pageTitle: 'add friend\'s birthday',
             message: '',
         })
     }
@@ -208,12 +208,12 @@ const getEditFriendBdayForm = async (req, res) => {
     }
 
     if (wantsHTML(req)) {
-        const job = friendBday.toObject()
-        job.firstName = unescapeApostropheForDisplay(job.firstName)
+        const friendsBirthdayData = friendBday.toObject()
+        friendsBirthdayData.firstName = unescapeApostropheForDisplay(friendsBirthdayData.firstName)
 
-        return res.status(StatusCodes.OK).render('jobs/edit', {
-            pageTitle: 'edit job',
-            job,
+        return res.status(StatusCodes.OK).render('friendBdays/edit', {
+            pageTitle: 'edit friend\'s birthday',
+            friendsBirthdayData,
             message: '',
         })
     }
@@ -305,7 +305,7 @@ const updateFriendBday = async (req, res) => {
     }
 
     if (wantsHTML(req)) {
-        req.flash('info', 'The job entry was updated.')
+        req.flash('info', 'The friend\'s birthday entry was updated.')
         return res.redirect('/friendsBday')
     }
 
