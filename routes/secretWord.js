@@ -14,6 +14,8 @@ router.post("/", (req, res) => {
 
   if (!nextWord) {
     req.flash("error", "Please enter a secret word.");
+  } else if (/['"]/.test(nextWord)) {
+    req.flash("error", "The secret word cannot contain single quotes or double quotes.");
   } else if (nextWord.toUpperCase()[0] == "P") {
     req.flash("error", "That word won't work!");
     req.flash("error", "You can't use words that start with p.");

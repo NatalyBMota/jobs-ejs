@@ -50,10 +50,29 @@ document.addEventListener("DOMContentLoaded", () => {
   month.addEventListener("change", validateDay);
   day.addEventListener("input", validateDay);
 
+  let isSubmitting = false;
+
   form.addEventListener("submit", (e) => {
     if (!validateDay()) {
       e.preventDefault();
       day.reportValidity();
+      return;
+    }
+
+    if (isSubmitting) {
+      e.preventDefault();
+      return;
+    }
+
+    isSubmitting = true;
+
+    const submitButton =
+      form.querySelector('button[type="submit"]') ||
+      form.querySelector('button:not([type])') ||
+      form.querySelector('input[type="submit"]');
+
+    if (submitButton) {
+      submitButton.disabled = true;
     }
   });
 

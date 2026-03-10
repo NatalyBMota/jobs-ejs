@@ -19,6 +19,89 @@ const DAYS_IN_MONTH = {
     December: 31,
 }
 
+const FIRST_NAME_INVALID_MESSAGE =
+    'First Name must start with at least two letters, may contain at most one dash, may not contain any other special characters, may contain at most one space in the middle, and may not contain any numeric digits.'
+
+const LAST_NAME_INVALID_MESSAGE =
+    'Last Name must start with at least two letters, may contain at most one dash, and may not contain other special characters, any numeric digits, nor any spaces.'
+
+const normalizePersonName = (value) => (typeof value === 'string' ? value.trim() : '')
+
+const validateFirstName = (value, maxLength) => {
+    const normalized = normalizePersonName(value)
+
+    if (!normalized) {
+        return { valid: false, message: 'First Name field cannot be empty' }
+    }
+
+    if (normalized.length > maxLength) {
+        return { valid: false, message: `First Name cannot be longer than ${maxLength} characters` }
+    }
+
+    if (!/^[A-Za-z]{2,}/.test(normalized)) {
+        return { valid: false, message: FIRST_NAME_INVALID_MESSAGE }
+    }
+
+    if (/[^A-Za-z -]/.test(normalized) || /\d/.test(normalized)) {
+        return { valid: false, message: FIRST_NAME_INVALID_MESSAGE }
+    }
+
+    const dashCount = (normalized.match(/-/g) || []).length
+    if (dashCount > 1) {
+        return { valid: false, message: FIRST_NAME_INVALID_MESSAGE }
+    }
+
+    const spaceCount = (normalized.match(/ /g) || []).length
+    if (spaceCount > 1) {
+        return { valid: false, message: FIRST_NAME_INVALID_MESSAGE }
+    }
+
+    if (/^[ -]|[ -]$|--|  |- | -/.test(normalized)) {
+        return { valid: false, message: FIRST_NAME_INVALID_MESSAGE }
+    }
+
+    return { valid: true, value: normalized }
+}
+
+const validateLastName = (value, maxLength) => {
+    const normalized = normalizePersonName(value)
+
+    if (!normalized) {
+        return { valid: false, message: 'Last Name field cannot be empty' }
+    }
+
+    if (normalized.length > maxLength) {
+        return { valid: false, message: `Last Name cannot be longer than ${maxLength} characters` }
+    }
+
+    if (!/^[A-Za-z]{2,}/.test(normalized)) {
+        return { valid: false, message: LAST_NAME_INVALID_MESSAGE }
+    }
+
+    if (/[^A-Za-z-]/.test(normalized) || /\d/.test(normalized) || /\s/.test(normalized)) {
+        return { valid: false, message: LAST_NAME_INVALID_MESSAGE }
+    }
+
+    const dashCount = (normalized.match(/-/g) || []).length
+    if (dashCount > 1) {
+        return { valid: false, message: LAST_NAME_INVALID_MESSAGE }
+    }
+
+    if (/^-|-$|--/.test(normalized)) {
+        return { valid: false, message: LAST_NAME_INVALID_MESSAGE }
+    }
+
+    return { valid: true, value: normalized }
+}
+
+const respondValidationError = (req, res, message, redirectPath) => {
+    if (wantsHTML(req)) {
+        req.flash('error', message)
+        return res.redirect(redirectPath)
+    }
+    throw new BadRequestError(message)
+}
+
 const normalizeBirthdayFields = (body) => {
     const birthdayMonth = body.birthdayMonth || body.month || body.status
     const birthdayDay = Number(body.birthdayDay ?? body.day)
@@ -119,20 +202,34 @@ const getEditFriendBdayForm = async (req, res) => {
 }
 
 const createFriendBday = async (req, res) => {
-    const firstName = req.body.firstName
-    const lastName = req.body.lastName
-
-    if (firstName === '' || lastName === '') {
-        throw new BadRequestError('First Name or Last Name fields cannot be empty')
+    const firstNameCheck = validateFirstName(req.body.firstName, 50)
+    if (!firstNameCheck.valid) {
+        return respondValidationError(req, res, firstNameCheck.message, '/friendsBday/new')
     }
 
-    normalizeBirthdayFields(req.body)
+    const lastNameCheck = validateLastName(req.body.lastName, 100)
+    if (!lastNameCheck.valid) {
+        return respondValidationError(req, res, lastNameCheck.message, '/friendsBday/new')
+    }
+
+    req.body.firstName = firstNameCheck.value
+    req.body.lastName = lastNameCheck.value
+
+    try {
+        normalizeBirthdayFields(req.body)
+    } catch (err) {
+        if (err instanceof BadRequestError) {
+            return respondValidationError(req, res, err.message, '/friendsBday/new')
+        }
+        throw err
+    }
 
     req.body.createdBy = req.user._id
     await FriendsBdays.create(req.body)
 
     if (wantsHTML(req)) {
-        return res.redirect('/friendsBday?message=The friend birthday entry was created.')
+        req.flash('info', 'The friend birthday entry was created.')
+        return res.redirect('/friendsBday')
     }
 
     const friendBday = await FriendsBdays.findOne(req.body)
@@ -141,16 +238,41 @@ const createFriendBday = async (req, res) => {
 
 const updateFriendBday = async (req, res) => {
     const {
-        body: { firstName, lastName },
         user: { _id: userId },
         params: { id: friendBdayId },
     } = req
 
-    if (firstName === '' || lastName === '') {
-        throw new BadRequestError('First Name or Last Name fields cannot be empty')
+    const firstNameCheck = validateFirstName(req.body.firstName, 50)
+    if (!firstNameCheck.valid) {
+        return respondValidationError(
+            req,
+            res,
+            firstNameCheck.message,
+            `/friendsBday/edit/${friendBdayId}`
+        )
     }
 
-    normalizeBirthdayFields(req.body)
+    const lastNameCheck = validateLastName(req.body.lastName, 100)
+    if (!lastNameCheck.valid) {
+        return respondValidationError(
+            req,
+            res,
+            lastNameCheck.message,
+            `/friendsBday/edit/${friendBdayId}`
+        )
+    }
+
+    req.body.firstName = firstNameCheck.value
+    req.body.lastName = lastNameCheck.value
+
+    try {
+        normalizeBirthdayFields(req.body)
+    } catch (err) {
+        if (err instanceof BadRequestError) {
+            return respondValidationError(req, res, err.message, `/friendsBday/edit/${friendBdayId}`)
+        }
+        throw err
+    }
 
     const friendBday = await FriendsBdays.findOneAndUpdate(
         { _id: friendBdayId, createdBy: userId },
@@ -163,7 +285,8 @@ const updateFriendBday = async (req, res) => {
     }
 
     if (wantsHTML(req)) {
-        return res.redirect('/friendsBday?message=The job entry was updated.')
+        req.flash('info', 'The job entry was updated.')
+        return res.redirect('/friendsBday')
     }
 
     res.status(StatusCodes.OK).json({ friendBday })

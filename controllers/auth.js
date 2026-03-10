@@ -14,6 +14,57 @@ const attachTokenCookie = (res, token) => {
     })
 }
 
+const validateRegisterName = (name) => {
+    try {
+        const trimmedName = typeof name === 'string' ? name.trim() : ''
+
+        if (!trimmedName) {
+            return { valid: false, message: 'Please provide name.' }
+        }
+
+        if (trimmedName.length < 3) {
+            return { valid: false, message: 'Name must be at least 3 characters.' }
+        }
+
+        if (trimmedName.length > 50) {
+            return { valid: false, message: 'Name cannot be longer than 50 characters.' }
+        }
+
+        if (!/^[A-Za-z ]+$/.test(trimmedName)) {
+            return { valid: false, message: 'Name can contain letters and spaces only.' }
+        }
+
+        return { valid: true, value: trimmedName }
+    } catch (e) {
+        return { valid: false, message: 'Invalid name.' }
+    }
+}
+
+const validateApiPassword = (password) => {
+    try {
+        const value = typeof password === 'string' ? password : ''
+
+        if (!value) {
+            return { valid: false, message: 'Please provide password.' }
+        }
+
+        if (/['"]/.test(value)) {
+            return {
+                valid: false,
+                message: 'Password cannot contain single quotes or double quotes',
+            }
+        }
+
+        if (value.length < 6) {
+            return { valid: false, message: 'Password must be at least 6 characters' }
+        }
+
+        return { valid: true }
+    } catch (e) {
+        return { valid: false, message: 'Invalid password input.' }
+    }
+}
+
 const showLoginPage = async (req, res) => {
     res.status(StatusCodes.OK).render('auth/login', { pageTitle: 'logon', message: '' })
 }
@@ -22,27 +73,87 @@ const showRegisterPage = async (req, res) => {
     res.status(StatusCodes.OK).render('auth/register', { pageTitle: 'register', message: '' })
 }
 
-const register = async (req, res) => {
-    const { name, email, password } = req.body
-    if (!name || !email || !password) {
-        if (isFormRequest(req)) {
-            return res.status(StatusCodes.BAD_REQUEST).render('auth/register', {
-                pageTitle: 'register',
-                message: 'Please provide name, email, and password',
-            })
+const register = async (req, res, next) => {
+    try {
+        const { name, email, password } = req.body
+
+        if (!name || !email || !password) {
+            if (isFormRequest(req)) {
+                return res.status(StatusCodes.BAD_REQUEST).render('auth/register', {
+                    pageTitle: 'register',
+                    message: 'Please provide name, email, and password',
+                })
+            }
+            throw new BadRequestError('Please provide name, email, and password')
         }
-        throw new BadRequestError('Please provide name, email, and password')
+
+        const nameCheck = validateRegisterName(name)
+        if (!nameCheck.valid) {
+            if (isFormRequest(req)) {
+                return res.status(StatusCodes.BAD_REQUEST).render('auth/register', {
+                    pageTitle: 'register',
+                    message: nameCheck.message,
+                })
+            }
+            throw new BadRequestError(nameCheck.message)
+        }
+
+        const passwordCheck = validateApiPassword(password)
+        if (!passwordCheck.valid) {
+            if (isFormRequest(req)) {
+                return res.status(StatusCodes.BAD_REQUEST).render('auth/register', {
+                    pageTitle: 'register',
+                    message: passwordCheck.message,
+                })
+            }
+            throw new BadRequestError(passwordCheck.message)
+        }
+
+        const user = await User.create({
+            ...req.body,
+            name: nameCheck.value,
+        })
+
+        const token = user.createJWT()
+
+        if (isFormRequest(req)) {
+            attachTokenCookie(res, token)
+            return res.redirect('/friendsBday')
+        }
+
+        return res.status(StatusCodes.CREATED).json({ user: { name: user.name }, token })
+    } catch (e) {
+        if (e.constructor && e.constructor.name === 'ValidationError') {
+            const messages = Object.keys(e.errors).map(
+                (key) => `${key}: ${e.errors[key].properties.message}`
+            )
+            const message = messages.join(' | ')
+
+            if (isFormRequest(req)) {
+                return res.status(StatusCodes.BAD_REQUEST).render('auth/register', {
+                    pageTitle: 'register',
+                    message,
+                })
+            }
+
+            return res.status(StatusCodes.BAD_REQUEST).json({ msg: message })
+        }
+
+        if (e.name === 'MongoServerError' && e.code === 11000) {
+            const message = 'That email address is already registered.'
+
+            if (isFormRequest(req)) {
+                return res.status(StatusCodes.BAD_REQUEST).render('auth/register', {
+                    pageTitle: 'register',
+                    message,
+                })
+            }
+
+            return res.status(StatusCodes.BAD_REQUEST).json({ msg: message })
+        }
+
+        return next(e)
     }
-
-    const user = await User.create({ ...req.body })
-    const token = user.createJWT()
-
-    if (isFormRequest(req)) {
-        attachTokenCookie(res, token)
-        return res.redirect('/friendsBday')
-    }
-
-    res.status(StatusCodes.CREATED).json({ user: { name: user.name }, token })
 }
 
 const login = async (req, res) => {
