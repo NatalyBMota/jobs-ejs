@@ -1,4 +1,4 @@
-const Job = require('../models/FriendsBdays')
+const FriendsBdays = require('../models/FriendsBdays')
 const { StatusCodes } = require('http-status-codes')
 const { BadRequestError, NotFoundError } = require('../errors')
 
@@ -20,57 +20,60 @@ const DAYS_IN_MONTH = {
 }
 
 const normalizeBirthdayFields = (body) => {
-    const month = body.month || body.status
-    const day = Number(body.day)
+    const birthdayMonth = body.birthdayMonth || body.month || body.status
+    const birthdayDay = Number(body.birthdayDay ?? body.day)
 
-    if (!month || !Object.prototype.hasOwnProperty.call(DAYS_IN_MONTH, month)) {
+    if (!birthdayMonth || !Object.prototype.hasOwnProperty.call(DAYS_IN_MONTH, birthdayMonth)) {
         throw new BadRequestError('Please select a valid month')
     }
 
-    if (!Number.isInteger(day)) {
+    if (!Number.isInteger(birthdayDay)) {
         throw new BadRequestError('Day must be a whole number')
     }
 
-    if (day < 1 || day > DAYS_IN_MONTH[month]) {
-        throw new BadRequestError(`Day must be between 1 and ${DAYS_IN_MONTH[month]} for ${month}`)
+    if (birthdayDay < 1 || birthdayDay > DAYS_IN_MONTH[birthdayMonth]) {
+        throw new BadRequestError(`Day must be between 1 and ${DAYS_IN_MONTH[birthdayMonth]} for ${birthdayMonth}`)
     }
 
-    body.status = month
-    body.day = day
+    body.birthdayMonth = birthdayMonth
+    body.birthdayDay = birthdayDay
+
     delete body.month
+    delete body.day
+    delete body.status
 }
 
 const getAllFriendsBdays = async (req, res) => {
     const userId = req.user._id
-    const jobs = await Job.find({ createdBy: userId }).sort('createdAt')
+    const friendBdays = await FriendsBdays.find({ createdBy: userId }).sort('createdAt')
     if (wantsHTML(req)) {
-         const friends = jobs.map((job) => ({
-            _id: job._id,
-            firstName: job.company,
-            lastName: job.position,
-            birthdayMonth: job.status,
-            birthdayDay: job.day,
-        }))
+         const friends = friendBdays.map((friendBday) => ({
+        _id: friendBday._id,
+        firstName: friendBday.firstName || friendBday.company,
+        lastName: friendBday.lastName || friendBday.position,
+        birthdayMonth: friendBday.birthdayMonth || friendBday.status,
+        birthdayDay: friendBday.birthdayDay || friendBday.day,
+    }))
 
         return res.status(StatusCodes.OK).render('friendsBdays', { friends })
     }
-    res.status(StatusCodes.OK).json({ jobs, count: jobs.length })
+    res.status(StatusCodes.OK).json({ friendBdays, count: friendBdays.length })
 }
 
 const getFriendsBdays = async (req, res) => {
     const {
         user: { _id: userId },
-        params: { id: jobId },
+        params: { id: friendBdayId },
     } = req
 
-    const job = await Job.findOne({
-        _id: jobId,
+    const friendBday = await FriendsBdays.findOne({
+        _id: friendBdayId,
         createdBy: userId,
     })
-    if (!job) {
-        throw new NotFoundError(`No job with id ${jobId}`)
+    if (!friendBday) {
+        throw new NotFoundError(`No entry with id ${friendBdayId}`)
     }
-    res.status(StatusCodes.OK).json({ job })
+    res.status(StatusCodes.OK).json({ friendBday })
 }
 
 const getNewFriendBdayForm = async (req, res) => {
@@ -82,10 +85,10 @@ const getNewFriendBdayForm = async (req, res) => {
     }
     res.status(StatusCodes.OK).json({
         form: {
-            company: '',
-            position: '',
-            month: 'January',
-            day: 1,
+            firstName: '',
+            lastName: '',
+            birthdayMonth: 'January',
+            birthdayDay: 1,
         },
     })
 }
@@ -93,85 +96,92 @@ const getNewFriendBdayForm = async (req, res) => {
 const getEditFriendBdayForm = async (req, res) => {
     const {
         user: { _id: userId },
-        params: { id: jobId },
+        params: { id: friendBdayId },
     } = req
 
-    const job = await Job.findOne({
-        _id: jobId,
+    const friendBday = await FriendsBdays.findOne({
+        _id: friendBdayId,
         createdBy: userId,
     })
-    if (!job) {
-        throw new NotFoundError(`No job with id ${jobId}`)
+    if (!friendBday) {
+        throw new NotFoundError(`No entry with id ${friendBdayId}`)
     }
 
     if (wantsHTML(req)) {
         return res.status(StatusCodes.OK).render('jobs/edit', {
             pageTitle: 'edit job',
-            job,
+            job: friendBday,
             message: '',
         })
     }
 
-    res.status(StatusCodes.OK).json({ job })
+    res.status(StatusCodes.OK).json({ job: friendBday })
 }
 
 const createFriendBday = async (req, res) => {
+    const firstName = req.body.firstName
+    const lastName = req.body.lastName
+
+    if (firstName === '' || lastName === '') {
+        throw new BadRequestError('First Name or Last Name fields cannot be empty')
+    }
+
     normalizeBirthdayFields(req.body)
 
     req.body.createdBy = req.user._id
-    await Job.create(req.body)
+    await FriendsBdays.create(req.body)
 
     if (wantsHTML(req)) {
-        return res.redirect('/friendsBday?message=The job entry was created.')
+        return res.redirect('/friendsBday?message=The friend birthday entry was created.')
     }
 
-    const job = await Job.findOne(req.body)
-    res.status(StatusCodes.CREATED).json({ job })
+    const friendBday = await FriendsBdays.findOne(req.body)
+    res.status(StatusCodes.CREATED).json({ friendBday })
 }
 
 const updateFriendBday = async (req, res) => {
     const {
-        body: { company, position },
+        body: { firstName, lastName },
         user: { _id: userId },
-        params: { id: jobId },
+        params: { id: friendBdayId },
     } = req
 
-    if (company === '' || position === '') {
-        throw new BadRequestError('Company or Position fields cannot be empty')
+    if (firstName === '' || lastName === '') {
+        throw new BadRequestError('First Name or Last Name fields cannot be empty')
     }
 
     normalizeBirthdayFields(req.body)
 
-    const job = await Job.findOneAndUpdate(
-        { _id: jobId, createdBy: userId },
+    const friendBday = await FriendsBdays.findOneAndUpdate(
+        { _id: friendBdayId, createdBy: userId },
         req.body,
         { returnDocument: 'after', runValidators: true }
     )
 
-    if (!job) {
-        throw new NotFoundError(`No job with id ${jobId}`)
+    if (!friendBday) {
+        throw new NotFoundError(`No entry with id ${friendBdayId}`)
     }
 
     if (wantsHTML(req)) {
         return res.redirect('/friendsBday?message=The job entry was updated.')
     }
 
-    res.status(StatusCodes.OK).json({ job })
+    res.status(StatusCodes.OK).json({ friendBday })
 }
 
 const deleteFriendBday = async (req, res) => {
     const {
         user: { _id: userId },
-        params: { id: jobId },
+        params: { id: friendBdayId },
     } = req
 
-    const job = await Job.findOneAndDelete({
-        _id: jobId,
+    const friendBday = await FriendsBdays.findOneAndDelete({
+        _id: friendBdayId,
         createdBy: userId,
     })
 
-    if (!job) {
-        throw new NotFoundError(`No job with id ${jobId}`)
+    if (!friendBday) {
+        throw new NotFoundError(`No entry with id ${friendBdayId}`)
     }
 
     if (wantsHTML(req)) {

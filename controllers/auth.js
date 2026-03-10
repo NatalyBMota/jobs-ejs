@@ -84,7 +84,7 @@ const login = async (req, res) => {
 
     if (isFormRequest(req)) {
         attachTokenCookie(res, token)
-        return res.redirect('/jobs')
+        return res.redirect('/friendsBday')
     }
 
     res.status(StatusCodes.OK).json({ user: { name: user.name }, token })

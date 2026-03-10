@@ -1,23 +1,23 @@
 const mongoose = require('mongoose')
 
-const JobSchema = new mongoose.Schema(
+const FriendsBdaysSchema = new mongoose.Schema(
     {
-        company: {
+        firstName: {
             type: String,
-            required: [true, 'Please provide company name'],
+            required: [true, 'Please provide first name'],
             maxlength: 50,
         },
-        position: {
+        lastName: {
             type: String,
-            required: [true, 'Please provide position'],
+            required: [true, 'Please provide last name'],
             maxlength: 100,
         },
-        status: {
+        birthdayMonth: {
             type: String,
             enum: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
             default: 'January',
         },
-        day: {
+        birthdayDay: {
             type: Number,
             required: [true, 'Please provide a day'],
             min: 1,
@@ -32,8 +32,8 @@ const JobSchema = new mongoose.Schema(
             ref: 'User',
             required: [true, 'Please provide user'],
         },
-    }, 
+    },
     { timestamps: true }
 )
 
-module.exports = mongoose.model('Job', JobSchema)
+module.exports = mongoose.model('FriendsBdays', FriendsBdaysSchema)

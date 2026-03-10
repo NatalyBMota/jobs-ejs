@@ -3,7 +3,7 @@ import {
   token,
   enableInput,
 } from "./index.js";
-import { showJobs } from "./friendsBdays.js";
+import { showFriendsBdays } from "./friendsBdays.js";
 
 export const deleteFriendBday = async (jobId) => {
     enableInput(false);
@@ -30,7 +30,7 @@ export const deleteFriendBday = async (jobId) => {
             const data = await response.json();
             if (response.status === 200) {
                 message.textContent = "The job was successfully deleted"
-                showJobs()
+                showFriendsBdays()
                 enableInput(true)
                 console.log("Job deleted successfully.")
             } else {
