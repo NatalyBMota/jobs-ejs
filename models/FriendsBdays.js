@@ -3,23 +3,35 @@ const mongoose = require('mongoose')
 const FriendsBdaysSchema = new mongoose.Schema(
     {
         firstName: {
-        type: String,
-        required: [true, 'Please provide first name'],
-        trim: true,
-        maxlength: [50, 'First Name cannot be longer than 50 characters'],
-        validate: [
+            type: String,
+            required: [true, 'Please provide first name'],
+            trim: true,
+            maxlength: [50, 'First Name cannot be longer than 50 characters'],
+            validate: [
                 {
                     validator: function (value) {
-                        if (!/^[A-Za-z]{2,}/.test(value)) return false
-                        if (/[^A-Za-z -]/.test(value) || /\d/.test(value)) return false
-                        const dashCount = (value.match(/-/g) || []).length
-                        const spaceCount = (value.match(/ /g) || []).length
-                        if (dashCount > 1 || spaceCount > 1) return false
-                        if (/^[ -]|[ -]$|--|  |- | -/.test(value)) return false
+                        const unescaped = typeof value === 'string' ? value.replace(/\\'/g, "'") : value
+
+                        if (typeof unescaped !== 'string') return false
+                        if (unescaped.includes('\\')) return false
+                        if (!/^([A-Za-z]{2}|[A-Za-z]'[A-Za-z])/.test(unescaped)) return false
+                        if (/[^A-Za-z '\-]/.test(unescaped) || /\d/.test(unescaped)) return false
+
+                        const dashCount = (unescaped.match(/-/g) || []).length
+                        if (dashCount > 1) return false
+
+                        const apostropheCount = (unescaped.match(/'/g) || []).length
+                        if (apostropheCount > 1) return false
+
+                        const spaceCount = (unescaped.match(/ /g) || []).length
+                        if (spaceCount > 1) return false
+
+                        if (/^[ '\-]|[ '\-]$|--|''|  |- | -|' | '/.test(unescaped)) return false
+
                         return true
                     },
                     message:
-                        'First Name must start with at least two letters, may contain at most one dash, may not contain any other special characters, may contain at most one space in the middle, and may not contain any numeric digits.',
+                        "First Name must start with at least two letters, may contain at most one dash, may contain at most one apostrophe, may contain at most one space in the middle, may not contain any other special characters, and may not contain any numeric digits.",
                 },
             ],
         },

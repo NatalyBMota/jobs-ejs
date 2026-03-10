@@ -20,12 +20,18 @@ const DAYS_IN_MONTH = {
 }
 
 const FIRST_NAME_INVALID_MESSAGE =
-    'First Name must start with at least two letters, may contain at most one dash, may not contain any other special characters, may contain at most one space in the middle, and may not contain any numeric digits.'
+    'First Name must start with a letter, and the second character must be a letter or an apostrophe. If the second character is an apostrophe, the third character must be a letter. First Name may contain at most one dash, may contain at most one apostrophe, may contain at most one space in the middle, may not contain any other special characters, and may not contain any numeric digits.'
 
 const LAST_NAME_INVALID_MESSAGE =
     'Last Name must start with at least two letters, may contain at most one dash, and may not contain other special characters, any numeric digits, nor any spaces.'
 
 const normalizePersonName = (value) => (typeof value === 'string' ? value.trim() : '')
+
+const escapeApostropheForStorage = (value) =>
+    (typeof value === 'string' ? value.replace(/'/g, "\\'") : value)
+
+const unescapeApostropheForDisplay = (value) =>
+    (typeof value === 'string' ? value.replace(/\\'/g, "'") : value)
 
 const validateFirstName = (value, maxLength) => {
     const normalized = normalizePersonName(value)
@@ -38,11 +44,15 @@ const validateFirstName = (value, maxLength) => {
         return { valid: false, message: `First Name cannot be longer than ${maxLength} characters` }
     }
 
-    if (!/^[A-Za-z]{2,}/.test(normalized)) {
-        return { valid: false, message: FIRST_NAME_INVALID_MESSAGE }
+    const startsWithValidFirstNamePrefix = /^([A-Za-z]{2}|[A-Za-z]'[A-Za-z])/.test(normalized)
+    if (!startsWithValidFirstNamePrefix) {
+        return { 
+            valid: false, 
+            message: FIRST_NAME_INVALID_MESSAGE 
+        }
     }
 
-    if (/[^A-Za-z -]/.test(normalized) || /\d/.test(normalized)) {
+    if (/[^A-Za-z '\-]/.test(normalized) || /\d/.test(normalized)) {
         return { valid: false, message: FIRST_NAME_INVALID_MESSAGE }
     }
 
@@ -51,12 +61,17 @@ const validateFirstName = (value, maxLength) => {
         return { valid: false, message: FIRST_NAME_INVALID_MESSAGE }
     }
 
+    const apostropheCount = (normalized.match(/'/g) || []).length
+    if (apostropheCount > 1) {
+        return { valid: false, message: FIRST_NAME_INVALID_MESSAGE }
+    }
+
     const spaceCount = (normalized.match(/ /g) || []).length
     if (spaceCount > 1) {
         return { valid: false, message: FIRST_NAME_INVALID_MESSAGE }
     }
 
-    if (/^[ -]|[ -]$|--|  |- | -/.test(normalized)) {
+    if (/^[ '\-]|[ '\-]$|--|''|  |- | -|' | '/.test(normalized)) {
         return { valid: false, message: FIRST_NAME_INVALID_MESSAGE }
     }
 
@@ -131,12 +146,14 @@ const getAllFriendsBdays = async (req, res) => {
     const friendBdays = await FriendsBdays.find({ createdBy: userId }).sort('createdAt')
     if (wantsHTML(req)) {
          const friends = friendBdays.map((friendBday) => ({
-        _id: friendBday._id,
-        firstName: friendBday.firstName || friendBday.company,
-        lastName: friendBday.lastName || friendBday.position,
-        birthdayMonth: friendBday.birthdayMonth || friendBday.status,
-        birthdayDay: friendBday.birthdayDay || friendBday.day,
-    }))
+            _id: friendBday._id,
+            firstName: friendBday.firstName
+            ? unescapeApostropheForDisplay(friendBday.firstName)
+            : friendBday.company,
+            lastName: friendBday.lastName || friendBday.position,
+            birthdayMonth: friendBday.birthdayMonth || friendBday.status,
+            birthdayDay: friendBday.birthdayDay || friendBday.day,
+        }))
 
         return res.status(StatusCodes.OK).render('friendsBdays', { friends })
     }
@@ -191,9 +208,12 @@ const getEditFriendBdayForm = async (req, res) => {
     }
 
     if (wantsHTML(req)) {
+        const job = friendBday.toObject()
+        job.firstName = unescapeApostropheForDisplay(job.firstName)
+
         return res.status(StatusCodes.OK).render('jobs/edit', {
             pageTitle: 'edit job',
-            job: friendBday,
+            job,
             message: '',
         })
     }
@@ -212,7 +232,7 @@ const createFriendBday = async (req, res) => {
         return respondValidationError(req, res, lastNameCheck.message, '/friendsBday/new')
     }
 
-    req.body.firstName = firstNameCheck.value
+    req.body.firstName = escapeApostropheForStorage(firstNameCheck.value)
     req.body.lastName = lastNameCheck.value
 
     try {
@@ -262,7 +282,7 @@ const updateFriendBday = async (req, res) => {
         )
     }
 
-    req.body.firstName = firstNameCheck.value
+    req.body.firstName = escapeApostropheForStorage(firstNameCheck.value)
     req.body.lastName = lastNameCheck.value
 
     try {
@@ -304,11 +324,16 @@ const deleteFriendBday = async (req, res) => {
     })
 
     if (!friendBday) {
+        if (wantsHTML(req)) {
+            req.flash('error', 'That entry no longer exists or was already deleted.')
+            return res.redirect('/friendsBday')
+        }
         throw new NotFoundError(`No entry with id ${friendBdayId}`)
     }
 
     if (wantsHTML(req)) {
-        return res.redirect('/friendsBday?message=The entry was deleted.')
+        req.flash('info', 'The entry was deleted.')
+        return res.redirect('/friendsBday')
     }
 
     res.status(StatusCodes.OK).json({ msg: 'The entry was deleted.' })
