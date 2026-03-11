@@ -1,0 +1,54 @@
+<%- include("../partials/head.ejs") %>
+<%- include("../partials/header.ejs") %>
+  <h2>Edit Friend's Birthday Data</h2>
+  <% if (message) { %><p><%= message %></p><% } %>
+
+  <form method="POST" action="/friendsBday/update/<%= friendsBirthdayData._id %>">
+  <table id="jobs-form-table">
+    <tr>
+      <th colspan="2">Edit Friend's Birthday</th>
+    </tr>
+    <tr>
+      <td><label for="firstName">First Name:</label></td>
+      <td><input type="text" id="firstName" name="firstName" value="<%= friendsBirthdayData.firstName %>" required /></td>
+    </tr>
+    <tr>
+      <td><label for="lastName">Last Name:</label></td>
+      <td><input type="text" id="lastName" name="lastName" value="<%= friendsBirthdayData.lastName %>" required /></td>
+    </tr>
+    <tr>
+      <td><label for="month">Month:</label></td>
+      <td>
+        <select id="month" name="month">
+          <option value="January" <%= friendsBirthdayData.birthdayMonth === 'January' ? 'selected' : '' %>>January</option>
+          <option value="February" <%= friendsBirthdayData.birthdayMonth === 'February' ? 'selected' : '' %>>February</option>
+          <option value="March" <%= friendsBirthdayData.birthdayMonth === 'March' ? 'selected' : '' %>>March</option>
+          <option value="April" <%= friendsBirthdayData.birthdayMonth === 'April' ? 'selected' : '' %>>April</option>
+          <option value="May" <%= friendsBirthdayData.birthdayMonth === 'May' ? 'selected' : '' %>>May</option>
+          <option value="June" <%= friendsBirthdayData.birthdayMonth === 'June' ? 'selected' : '' %>>June</option>
+          <option value="July" <%= friendsBirthdayData.birthdayMonth === 'July' ? 'selected' : '' %>>July</option>
+          <option value="August" <%= friendsBirthdayData.birthdayMonth === 'August' ? 'selected' : '' %>>August</option>
+          <option value="September" <%= friendsBirthdayData.birthdayMonth === 'September' ? 'selected' : '' %>>September</option>
+          <option value="October" <%= friendsBirthdayData.birthdayMonth === 'October' ? 'selected' : '' %>>October</option>
+          <option value="November" <%= friendsBirthdayData.birthdayMonth === 'November' ? 'selected' : '' %>>November</option>
+          <option value="December" <%= friendsBirthdayData.birthdayMonth === 'December' ? 'selected' : '' %>>December</option>
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td><label for="day">Day (numeric):</label></td>
+      <td><input type="number" id="day" name="day" min="1" max="31" step="1" value="<%= friendsBirthdayData.birthdayDay %>" required /></td>
+    </tr>
+    <tr>
+      <td colspan="2">
+        <% if (locals._csrf) { %>
+          <input type="hidden" name="_csrf" value="<%= locals._csrf %>" />
+        <% } %>
+        <button type="submit">update</button>
+        <a href="/friendsBday"><button type="button">cancel</button></a>
+      </td>
+    </tr>
+  </table>
+</form>
+<script src="/birthdayValidation.js"></script>
+<%- include("../partials/footer.ejs") %>

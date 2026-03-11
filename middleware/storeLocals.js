@@ -4,9 +4,16 @@ const storeLocals = (req, res, next) => {
   } else {
     res.locals.user = null;
   }
-  res.locals.info = req.flash("info");
-  res.locals.errors = req.flash("error");
-  // console.log("STORELOCALS: Errors retrieved from flash:", res.locals.errors);
+
+  // Load flash messages only when a view is actually rendered.
+  // This prevents unrelated requests from consuming messages early.
+  const originalRender = res.render.bind(res);
+  res.render = (view, locals, callback) => {
+    res.locals.info = req.flash("info");
+    res.locals.errors = req.flash("error");
+    return originalRender(view, locals, callback);
+  };
+
   next();
 };
 

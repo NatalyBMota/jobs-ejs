@@ -134,10 +134,10 @@ app.use((req, res, next) => {
 });
 
 // Server Rendered Pages with JWT cookie auth
-const jobsRouter = require("./routes/jobs");
+const friendsBdaysRouter = require("./routes/friendsBdays");
 const pageAuth = require("./middleware/auth");
 
-app.use("/jobs", pageAuth, jobsRouter);
+app.use("/friendsBday", pageAuth, friendsBdaysRouter);
 
 // Existing session-based routes
 app.use("/sessions", authLimiter);

@@ -1,0 +1,41 @@
+<%- include("partials/head.ejs") %>
+<%- include("partials/header.ejs") %>
+  <h2>Friends and Birthdays List</h2>
+  <% if (locals.message) { %><p><%= locals.message %></p><% } %>
+
+  <table id="jobs-table">
+    <tr id="jobs-table-header">
+      <th>First Name</th>
+      <th>Last Name</th>
+      <th>Month</th>
+      <th>Day</th>
+      <th colspan="2"></th>
+    </tr>
+
+    <% if (friends && friends.length) { %>
+      <% friends.forEach((friend) => { %>
+      <tr>
+          <td><%= friend.firstName %></td>
+          <td><%= friend.lastName %></td>
+          <td><%= friend.birthdayMonth %></td>
+          <td><%= friend.birthdayDay %></td>
+          <td><a href="/friendsBday/edit/<%= friend._id %>"><button type="button">edit</button></a></td>
+          <td>
+          <form method="POST" action="/friendsBday/delete/<%= friend._id %>" style="display: inline">
+              <button>delete</button>
+              <% if (locals._csrf) { %>
+              <input type="hidden" name="_csrf" value="<%= locals._csrf %>" />
+              <% } %>
+          </form>
+          </td>
+      </tr>
+    <% }) %>
+  <% } %>
+  </table>
+
+  <p>
+    <a href="/friendsBday/new"><button type="button">add friend's birthday</button></a>
+  </p>
+  <p><a href="/">Back to home</a></p>
+
+<%- include("partials/footer.ejs") %>

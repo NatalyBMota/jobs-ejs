@@ -8,29 +8,26 @@ import {
 } from "./index.js";
 import { showLoginRegister } from "./loginRegister.js";
 import { showAddEdit } from "./addEdit.js";
-import { deleteJob } from "./delete.js";
+import { deleteFriendBday } from "./delete.js";
 
-let jobsDiv = null;
-let jobsTable = null;
-let jobsTableHeader = null;
+let friendsBdaysDiv = null;
+let friendsBdaysTable = null;
+let friendsBdaysTableHeader = null;
 
-export const handleJobs = () => {
-  jobsDiv = document.getElementById("jobs");
-  const logoff = document.getElementById("logoff");
-  const addJob = document.getElementById("add-job");
-  jobsTable = document.getElementById("jobs-table");
-  jobsTableHeader = document.getElementById("jobs-table-header");
+export const handleFriendsBdays = () => {
+  friendsBdaysDiv = document.getElementById("jobs");
+  const logoffButton = document.getElementById("logoff");
+  const addFriendBdayButton = document.getElementById("add-job");
+  friendsBdaysTable = document.getElementById("jobs-table");
+  friendsBdaysTableHeader = document.getElementById("jobs-table-header");
 
-  jobsDiv.addEventListener("click", async (e) => {
+  friendsBdaysDiv.addEventListener("click", async (e) => {
     if (inputEnabled && e.target.nodeName === "BUTTON") {
-      /* if (e.target === addJob) {
-        showAddEdit(null);
-      } else if (e.target === logoff) { */
-      if (e.target === addJob) {
+      if (e.target === addFriendBdayButton) {
         try {
           enableInput(false);
 
-          const response = await fetch("/jobs/new", {
+          const response = await fetch("/friendsBday/new", {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
@@ -49,31 +46,29 @@ export const handleJobs = () => {
           message.textContent = "A communication error occurred.";
         }
         enableInput(true);
-      } else if (e.target === logoff) {
+      } else if (e.target === logoffButton) {
         setToken(null);
 
         message.textContent = "You have been logged off.";
 
-        jobsTable.replaceChildren([jobsTableHeader]);
+        friendsBdaysTable.replaceChildren([friendsBdaysTableHeader]);
 
         showLoginRegister();
       } else if (e.target.classList.contains("editButton")) {
         message.textContent = "";
         showAddEdit(e.target.dataset.id);
       } else if (e.target.classList.contains("deleteButton")) {
-        // console.log("Delete button clicked")
-        deleteJob(e.target.dataset.id);
-        // deleteJob();
+        deleteFriendBday(e.target.dataset.id);
       }
     }
   });
 };
 
-export const showJobs = async () => {
+export const showFriendsBdays = async () => {
   try {
     enableInput(false);
 
-    const response = await fetch("/jobs", {
+    const response = await fetch("/friendsBday", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -82,29 +77,32 @@ export const showJobs = async () => {
     });
 
     const data = await response.json();
-    let children = [jobsTableHeader];
+    let children = [friendsBdaysTableHeader];
 
     if (response.status === 200) {
-      if (data.count === 0) {
-        jobsTableHeader.style.display = "none"
-        jobsTable.replaceChildren(...children); // clear this for safety
+      const friendBdays = data.friendBdays || data.friendsBdays || [];
+
+      if (friendBdays.length === 0) {
+        friendsBdaysTableHeader.style.display = "none";
+        friendsBdaysTable.replaceChildren(...children);
       } else {
-        jobsTableHeader.style.display = ""
-        for (let i = 0; i < data.jobs.length; i++) {
+        friendsBdaysTableHeader.style.display = "";
+        for (let i = 0; i < friendBdays.length; i++) {
           let rowEntry = document.createElement("tr");
 
-          let editButton = `<td><button type="button" class="editButton" data-id=${data.jobs[i]._id}>edit</button></td>`;
-          let deleteButton = `<td><button type="button" class="deleteButton" data-id=${data.jobs[i]._id}>delete</button></td>`;
+          let editButton = `<td><button type="button" class="editButton" data-id=${friendBdays[i]._id}>edit</button></td>`;
+          let deleteButton = `<td><button type="button" class="deleteButton" data-id=${friendBdays[i]._id}>delete</button></td>`;
           let rowHTML = `
-            <td>${data.jobs[i].company}</td>
-            <td>${data.jobs[i].position}</td>
-            <td>${data.jobs[i].status}</td>
+            <td>${friendBdays[i].firstName}</td>
+            <td>${friendBdays[i].lastName}</td>
+            <td>${friendBdays[i].birthdayMonth}</td>
+            <td>${friendBdays[i].birthdayDay}</td>
             <div>${editButton}${deleteButton}</div>`;
 
           rowEntry.innerHTML = rowHTML;
           children.push(rowEntry);
         }
-        jobsTable.replaceChildren(...children);
+        friendsBdaysTable.replaceChildren(...children);
       }
     } else {
       message.textContent = data.msg;
@@ -114,5 +112,5 @@ export const showJobs = async () => {
     message.textContent = "A communication error occurred.";
   }
   enableInput(true);
-  setDiv(jobsDiv);
+  setDiv(friendsBdaysDiv);
 };

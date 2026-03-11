@@ -22,8 +22,14 @@ const flash = (req, res, next) => {
       return messages;
     }
 
-    req.session.flash[type].push(message);
-    return req.session.flash[type];
+    const messages = req.session.flash[type];
+    const lastMessage = messages[messages.length - 1];
+
+    if (lastMessage !== message) {
+      messages.push(message);
+    }
+
+    return messages;
   };
 
   next();
