@@ -1,33 +1,82 @@
-const Job = require("../models/Job");
+const FriendsBdays = require("../models/FriendsBdays");
 const User = require("../models/User");
 const faker = require("@faker-js/faker").fakerEN_US;
-const FactoryBot = require("factory-bot");
 require("dotenv").config();
 
 const testUserPassword = faker.internet.password();
-const factory = FactoryBot.factory;
-const factoryAdapter = new FactoryBot.MongooseAdapter();
-factory.setAdapter(factoryAdapter);
-factory.define("job", Job, {
-  company: () => faker.company.name(),
-  position: () => faker.person.jobTitle(),
-  status: () =>
-    ["interview", "declined", "pending"][Math.floor(3 * Math.random())], // random one of these
+
+const buildFriendBday = (overrides = {}) => ({
+  firstName: faker.string.alpha({ length: { min: 3, max: 10 } }),
+  lastName: faker.string.alpha({ length: { min: 3, max: 12 } }),
+  birthdayMonth:
+    [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ][Math.floor(12 * Math.random())],
+  birthdayDay: Math.floor(28 * Math.random()) + 1,
+  ...overrides,
 });
-factory.define("user", User, {
-  name: () => faker.person.fullName(),
-  email: () => faker.internet.email(),
-  password: () => faker.internet.password(),
+
+const buildUser = (overrides = {}) => ({
+  name: faker.person.fullName(),
+  email: faker.internet.email(),
+  password: faker.internet.password(),
+  ...overrides,
 });
+
+const factory = {
+  build: async (type, overrides = {}) => {
+    if (type === "user") {
+      return buildUser(overrides);
+    }
+
+    if (type === "friendBday") {
+      return buildFriendBday(overrides);
+    }
+
+    throw new Error(`Unknown factory type: ${type}`);
+  },
+
+  create: async (type, overrides = {}) => {
+    if (type === "user") {
+      return User.create(buildUser(overrides));
+    }
+
+    if (type === "friendBday") {
+      return FriendsBdays.create(buildFriendBday(overrides));
+    }
+
+    throw new Error(`Unknown factory type: ${type}`);
+  },
+
+  createMany: async (type, count, overrides = {}) => {
+    const rows = [];
+
+    for (let i = 0; i < count; i += 1) {
+      rows.push(await factory.create(type, overrides));
+    }
+
+    return rows;
+  },
+};
 
 const seed_db = async () => {
   let testUser = null;
   try {
-    const mongoURL = process.env.MONGO_URI_TEST;
-    await Job.deleteMany({}); // deletes all job records
-    await User.deleteMany({}); // and all the users
+    await FriendsBdays.deleteMany({});
+    await User.deleteMany({});
     testUser = await factory.create("user", { password: testUserPassword });
-    await factory.createMany("job", 20, { createdBy: testUser._id }); // put 30 job entries in the database.
+    await factory.createMany("friendBday", 20, { createdBy: testUser._id });
   } catch (e) {
     console.log("database error");
     console.log(e.message);
