@@ -28,9 +28,6 @@ const passport = require("passport");
 // CSRF protection
 const { csrf, getToken } = require("host-csrf");
 
-// connectDB
-const connectDB = require("./db/connect");
-
 const app = express();
 app.disable("x-powered-by");
 
@@ -155,6 +152,16 @@ app.get("/", (req, res) => {
   res.render("index");
 });
 
+app.get("/multiply", (req, res) => {
+  const result = req.query.first * req.query.second;
+  if (result.isNaN) {
+    result = "NaN";
+  } else if (result == null) {
+    result = "null";
+  }
+  res.json({ result: result });
+});
+
 // Error Handler Middleware
 const notFoundMiddleware = require("./middleware/not-found");
 const errorHandlerMiddleware = require("./middleware/error-handler");
@@ -164,8 +171,9 @@ app.use(errorHandlerMiddleware);
 
 // Start Server
 const port = process.env.PORT || 3000;
-const start = async () => {
+/* const start = async () => {
   try {
+    const connectDB = require("./db/connect");
     await connectDB(process.env.MONGO_URI);
     const server = app.listen(port, () => {
       console.log(`Server is listening on port ${port}...`);
@@ -178,9 +186,23 @@ const start = async () => {
       }
       console.log(error);
     });
+    return server;
+  } catch (error) {
+    console.log(error);
+  }
+}; */
+
+const start = () => {
+  try {
+    require("./db/connect")(mongoURL);
+    return app.listen(port, () =>
+      console.log(`Server is listening on port ${port}...`),
+    );
   } catch (error) {
     console.log(error);
   }
 };
 
 start();
+
+module.exports = { app };
