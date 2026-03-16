@@ -1,6 +1,7 @@
 const express = require("express");
 require("express-async-errors");
 require("dotenv").config({ quiet: true });
+
 if (process.env.NODE_ENV !== "production") {
   process.env.XS_COOKIE_DEVELOPMENT_MODE = "true";
 }
@@ -84,9 +85,13 @@ app.use(cors());
 app.use(xss());
 
 // Session Set-up for UI Pages
-const url = process.env.MONGO_URI;
+let mongoURL = process.env.MONGO_URI;
+if (process.env.NODE_ENV == "test") {
+  mongoURL = process.env.MONGO_URI_TEST;
+}
+
 const store = new MongoDBStore({
-  uri: url,
+  uri: mongoURL,
   collection: "mySessions",
 });
 
