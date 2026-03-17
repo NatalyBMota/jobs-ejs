@@ -114,6 +114,11 @@ const respondValidationError = (req, res, message, redirectPath) => {
 
     if (wantsHTML(req)) {
         messages.forEach((msg) => req.flash('error', msg))
+
+        if (req.session && typeof req.session.save === 'function') {
+            return req.session.save(() => res.redirect(redirectPath))
+        }
+
         return res.redirect(redirectPath)
     }
 
