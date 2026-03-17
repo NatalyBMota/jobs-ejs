@@ -42,7 +42,6 @@
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
     "prettier": "^3.8.1",
-    "swagger-ui-express": "^5.0.1",
     "xss-clean": "^0.1.4",
     "yamljs": "^0.3.0"
   },
