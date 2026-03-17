@@ -27,12 +27,18 @@ const buildFriendBday = (overrides = {}) => ({
   ...overrides,
 });
 
-const buildUser = (overrides = {}) => ({
-  name: faker.person.fullName(),
-  email: faker.internet.email(),
-  password: faker.internet.password(),
-  ...overrides,
-});
+const buildUser = (overrides = {}) => {
+  const firstName = faker.string.alpha({ length: { min: 4, max: 8 } });
+  const lastName = faker.string.alpha({ length: { min: 5, max: 10 } });
+  const localPart = `${firstName}${Date.now()}`.toLowerCase();
+
+  return {
+    name: `${firstName} ${lastName}`,
+    email: `${localPart}@example.com`,
+    password: faker.internet.password({ length: 12 }).replace(/['"]/g, "x"),
+    ...overrides,
+  };
+};
 
 const factory = {
   build: async (type, overrides = {}) => {
