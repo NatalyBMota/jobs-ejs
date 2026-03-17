@@ -1,6 +1,7 @@
 const puppeteer = require("puppeteer");
 require("../app");
 const { seed_db, testUserPassword, seededFriendCount } = require("../util/seed_db");
+const FriendsBdays = require("../models/FriendsBdays");
 
 let testUser = null;
 let page = null;
@@ -157,6 +158,77 @@ describe("friends-bday puppeteer test", function () {
       expect(monthField).to.not.be.null;
       expect(dayField).to.not.be.null;
       expect(addButton).to.not.be.null;
+    });
+    it("creates a new friend birthday from the form and verifies UI message and database storage", async function () {
+      const { expect } = await import("chai");
+
+      const firstNameToCreate = "Xylophonia";
+      const lastNameToCreate = "Quendell";
+      const monthToCreate = "March";
+      const dayToCreate = "24";
+
+      // Ensure logged-in state on home page
+      await page.goto("http://localhost:3000", { waitUntil: "networkidle0" });
+      await page.waitForSelector(`p::-p-text(${testUser.name} is logged on.)`);
+
+      // Go to list page from root
+      const friendsLink = await page.waitForSelector(
+        "a::-p-text(Friends and Birthdays)",
+      );
+
+      await Promise.all([
+        page.waitForNavigation({ waitUntil: "networkidle0" }),
+        friendsLink.click(),
+      ]);
+
+      expect(page.url()).to.equal("http://localhost:3000/friendsBday");
+      await page.waitForSelector("#friendsBDay-table");
+
+      // Open add form
+      const addFriendButtonLink = await page.waitForSelector(
+        'a[href="/friendsBday/new"]',
+      );
+
+      await Promise.all([
+        page.waitForNavigation({ waitUntil: "networkidle0" }),
+        addFriendButtonLink.click(),
+      ]);
+
+      expect(page.url()).to.equal("http://localhost:3000/friendsBday/new");
+      await page.waitForSelector("#friendsBDay-form-table");
+
+      // Fill form fields
+      await page.type('input[name="firstName"]', firstNameToCreate);
+      await page.type('input[name="lastName"]', lastNameToCreate);
+      await page.select('select[name="month"]', monthToCreate);
+
+      const dayField = await page.waitForSelector('input[name="day"]');
+      await dayField.click({ clickCount: 3 });
+      await dayField.type(dayToCreate);
+
+      // Submit and wait for redirect back to list
+      await Promise.all([
+        page.waitForNavigation({ waitUntil: "networkidle0" }),
+        page.click('button[type="submit"]'),
+      ]);
+
+      expect(page.url()).to.equal("http://localhost:3000/friendsBday");
+      await page.waitForSelector("#friendsBDay-table");
+
+      // Verify info message in browser
+      const pageText = await page.$eval("body", (el) => el.textContent);
+      expect(pageText).to.include("Info: The friend birthday entry was created.");
+
+      // Verify DB persistence
+      const createdFriendBday = await FriendsBdays.findOne({
+        createdBy: testUser._id,
+        firstName: firstNameToCreate,
+        lastName: lastNameToCreate,
+      }).sort({ createdAt: -1 });
+
+      expect(createdFriendBday).to.not.be.null;
+      expect(createdFriendBday.birthdayMonth).to.equal(monthToCreate);
+      expect(createdFriendBday.birthdayDay).to.equal(Number(dayToCreate));
     });
   });
 });
