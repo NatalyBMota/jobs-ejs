@@ -11,7 +11,7 @@ let addEditDiv = null;
 let firstName = null;
 let lastName = null;
 let month = null;
-let addingJob = null;
+let addingFriendBDay = null;
 let editCancel = null;
 let day = null;
 
@@ -21,7 +21,7 @@ export const handleAddEdit = () => {
   lastName = document.getElementById("lastName");
   month = document.getElementById("month");
   day = document.getElementById("day");
-  addingJob = document.getElementById("adding-job");
+  addingFriendBDay = document.getElementById("adding-job");
   editCancel = document.getElementById("edit-cancel");
 
   const daysInMonth = {
@@ -70,7 +70,7 @@ export const handleAddEdit = () => {
 
   addEditDiv.addEventListener("click", async (e) => {
     if (inputEnabled && e.target.nodeName === "BUTTON") {
-      if (e.target === addingJob) {
+      if (e.target === addingFriendBDay) {
         if (!validateDay()) {
           day.reportValidity();
           return;
@@ -81,7 +81,7 @@ export const handleAddEdit = () => {
         let method = "POST";
         let url = "/friendsBday";
 
-        if (addingJob.textContent === "update") {
+        if (addingFriendBDay.textContent === "update") {
           method = "POST";
           url = `/friendsBday/update/${addEditDiv.dataset.id}`;
         }
@@ -143,7 +143,7 @@ export const showAddEdit = async (jobId) => {
     lastName.value = "";
     month.value = "January";
     day.value = "1";
-    addingJob.textContent = "add";
+    addingFriendBDay.textContent = "add";
     message.textContent = "";
 
     setDiv(addEditDiv);
@@ -167,7 +167,7 @@ export const showAddEdit = async (jobId) => {
         lastName.value = data.job.lastName;
         month.value = data.job.birthdayMonth;
         day.value = data.job.birthdayDay;
-        addingJob.textContent = "update";
+        addingFriendBDay.textContent = "update";
         message.textContent = "";
         addEditDiv.dataset.id = jobId;
 

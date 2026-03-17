@@ -18,8 +18,8 @@ export const handleFriendsBdays = () => {
   friendsBdaysDiv = document.getElementById("jobs");
   const logoffButton = document.getElementById("logoff");
   const addFriendBdayButton = document.getElementById("add-job");
-  friendsBdaysTable = document.getElementById("jobs-table");
-  friendsBdaysTableHeader = document.getElementById("jobs-table-header");
+  friendsBdaysTable = document.getElementById("friendsBDay-table");
+  friendsBdaysTableHeader = document.getElementById("friendsBDay-table-header");
 
   friendsBdaysDiv.addEventListener("click", async (e) => {
     if (inputEnabled && e.target.nodeName === "BUTTON") {

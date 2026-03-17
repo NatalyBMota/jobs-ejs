@@ -111,7 +111,11 @@ if (app.get("env") === "production") {
 app.use(session(sessionParms));
 
 // CSRF Middleware
-app.use(csrf());
+app.use(
+  csrf({
+    token_secret: process.env.SESSION_SECRET,
+  })
+);
 app.use((req, res, next) => {
   if (!res.locals._csrf) {
     getToken(req, res);

@@ -8,17 +8,12 @@ const renderSecretWordPage = (req, res, locals = {}) => {
 
   return res.render("secretWord", {
     secretWord: req.session.secretWord,
-    errors: [],
-    info: [],
     ...locals,
   });
 };
 
 router.get("/", (req, res) => {
-  return renderSecretWordPage(req, res, {
-    errors: req.flash("error"),
-    info: req.flash("info"),
-  });
+  return renderSecretWordPage(req, res);
 });
 
 router.post("/", (req, res) => {
@@ -33,6 +28,14 @@ router.post("/", (req, res) => {
   if (/['"]/.test(nextWord)) {
     return renderSecretWordPage(req, res, {
       errors: ["The secret word cannot contain single quotes or double quotes."],
+    });
+  }
+
+  if (/[^a-zA-Z \-]/.test(nextWord)) {
+    return renderSecretWordPage(req, res, {
+      errors: [
+        "The secret word may only contain letters, spaces, and hyphens.",
+      ],
     });
   }
 

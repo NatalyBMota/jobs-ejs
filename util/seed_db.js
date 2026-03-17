@@ -4,6 +4,7 @@ const faker = require("@faker-js/faker").fakerEN_US;
 require("dotenv").config();
 
 const testUserPassword = faker.internet.password();
+const seededFriendCount = 20;
 
 const buildFriendBday = (overrides = {}) => ({
   firstName: faker.string.alpha({ length: { min: 3, max: 10 } }),
@@ -82,7 +83,7 @@ const seed_db = async () => {
     await FriendsBdays.deleteMany({});
     await User.deleteMany({});
     testUser = await factory.create("user", { password: testUserPassword });
-    await factory.createMany("friendBday", 20, { createdBy: testUser._id });
+    await factory.createMany("friendBday", seededFriendCount, { createdBy: testUser._id });
   } catch (e) {
     console.log("database error");
     console.log(e.message);
@@ -91,4 +92,4 @@ const seed_db = async () => {
   return testUser;
 };
 
-module.exports = { testUserPassword, factory, seed_db };
+module.exports = { testUserPassword, seededFriendCount, factory, seed_db };

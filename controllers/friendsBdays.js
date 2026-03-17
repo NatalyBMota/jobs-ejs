@@ -110,11 +110,14 @@ const validateLastName = (value, maxLength) => {
 }
 
 const respondValidationError = (req, res, message, redirectPath) => {
+    const messages = Array.isArray(message) ? message : [message]
+
     if (wantsHTML(req)) {
-        req.flash('error', message)
+        messages.forEach((msg) => req.flash('error', msg))
         return res.redirect(redirectPath)
     }
-    throw new BadRequestError(message)
+
+    throw new BadRequestError(messages[0])
 }
 
 const normalizeBirthdayFields = (body) => {
@@ -223,13 +226,18 @@ const getEditFriendBdayForm = async (req, res) => {
 
 const createFriendBday = async (req, res) => {
     const firstNameCheck = validateFirstName(req.body.firstName, 50)
+    const lastNameCheck = validateLastName(req.body.lastName, 100)
+
+    const nameValidationErrors = []
     if (!firstNameCheck.valid) {
-        return respondValidationError(req, res, firstNameCheck.message, '/friendsBday/new')
+        nameValidationErrors.push(firstNameCheck.message)
+    }
+    if (!lastNameCheck.valid) {
+        nameValidationErrors.push(lastNameCheck.message)
     }
 
-    const lastNameCheck = validateLastName(req.body.lastName, 100)
-    if (!lastNameCheck.valid) {
-        return respondValidationError(req, res, lastNameCheck.message, '/friendsBday/new')
+    if (nameValidationErrors.length) {
+        return respondValidationError(req, res, nameValidationErrors, '/friendsBday/new')
     }
 
     req.body.firstName = escapeApostropheForStorage(firstNameCheck.value)
@@ -263,21 +271,21 @@ const updateFriendBday = async (req, res) => {
     } = req
 
     const firstNameCheck = validateFirstName(req.body.firstName, 50)
+    const lastNameCheck = validateLastName(req.body.lastName, 100)
+
+    const nameValidationErrors = []
     if (!firstNameCheck.valid) {
-        return respondValidationError(
-            req,
-            res,
-            firstNameCheck.message,
-            `/friendsBday/edit/${friendBdayId}`
-        )
+        nameValidationErrors.push(firstNameCheck.message)
+    }
+    if (!lastNameCheck.valid) {
+        nameValidationErrors.push(lastNameCheck.message)
     }
 
-    const lastNameCheck = validateLastName(req.body.lastName, 100)
-    if (!lastNameCheck.valid) {
+    if (nameValidationErrors.length) {
         return respondValidationError(
             req,
             res,
-            lastNameCheck.message,
+            nameValidationErrors,
             `/friendsBday/edit/${friendBdayId}`
         )
     }
