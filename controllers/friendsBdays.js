@@ -110,6 +110,7 @@ const validateLastName = (value, maxLength) => {
 }
 
 const respondValidationError = (req, res, message, redirectPath) => {
+
     const messages = Array.isArray(message) ? message : [message]
 
     if (wantsHTML(req)) {
@@ -123,6 +124,15 @@ const respondValidationError = (req, res, message, redirectPath) => {
     }
 
     throw new BadRequestError(messages[0])
+}
+
+const flashAndRedirect = (req, res, type, message, redirectPath) => {
+    req.flash(type, message)
+    if (req.session && typeof req.session.save === 'function') {
+        return req.session.save(() => res.redirect(redirectPath))
+    }
+
+    return res.redirect(redirectPath) 
 }
 
 const normalizeBirthdayFields = (body) => {
@@ -261,8 +271,13 @@ const createFriendBday = async (req, res) => {
     await FriendsBdays.create(req.body)
 
     if (wantsHTML(req)) {
-        req.flash('info', 'The friend birthday entry was created.')
-        return res.redirect('/friendsBday')
+        return flashAndRedirect(
+            req,
+            res,
+            'info',
+            'The friend birthday entry was created.',
+            '/friendsBday'
+        )
     }
 
     const friendBday = await FriendsBdays.findOne(req.body)
@@ -318,8 +333,13 @@ const updateFriendBday = async (req, res) => {
     }
 
     if (wantsHTML(req)) {
-        req.flash('info', 'The friend\'s birthday entry was updated.')
-        return res.redirect('/friendsBday')
+        return flashAndRedirect(
+            req,
+            res,
+            'info',
+            'The friend\'s birthday entry was updated.',
+            '/friendsBday'
+        )
     }
 
     res.status(StatusCodes.OK).json({ friendBday })
@@ -338,15 +358,19 @@ const deleteFriendBday = async (req, res) => {
 
     if (!friendBday) {
         if (wantsHTML(req)) {
-            req.flash('error', 'That entry no longer exists or was already deleted.')
-            return res.redirect('/friendsBday')
+            return flashAndRedirect(
+                req,
+                res,
+                'error',
+                'That entry no longer exists or was already deleted.',
+                '/friendsBday'
+            )
         }
         throw new NotFoundError(`No entry with id ${friendBdayId}`)
     }
 
     if (wantsHTML(req)) {
-        req.flash('info', 'The entry was deleted.')
-        return res.redirect('/friendsBday')
+        return flashAndRedirect(req, res, 'info', 'The entry was deleted.', '/friendsBday')
     }
 
     res.status(StatusCodes.OK).json({ msg: 'The entry was deleted.' })
