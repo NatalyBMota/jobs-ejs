@@ -110,11 +110,29 @@ const validateLastName = (value, maxLength) => {
 }
 
 const respondValidationError = (req, res, message, redirectPath) => {
+
+    const messages = Array.isArray(message) ? message : [message]
+
     if (wantsHTML(req)) {
-        req.flash('error', message)
+        messages.forEach((msg) => req.flash('error', msg))
+
+        if (req.session && typeof req.session.save === 'function') {
+            return req.session.save(() => res.redirect(redirectPath))
+        }
+
         return res.redirect(redirectPath)
     }
-    throw new BadRequestError(message)
+
+    throw new BadRequestError(messages[0])
+}
+
+const flashAndRedirect = (req, res, type, message, redirectPath) => {
+    req.flash(type, message)
+    if (req.session && typeof req.session.save === 'function') {
+        return req.session.save(() => res.redirect(redirectPath))
+    }
+
+    return res.redirect(redirectPath) 
 }
 
 const normalizeBirthdayFields = (body) => {
@@ -223,13 +241,18 @@ const getEditFriendBdayForm = async (req, res) => {
 
 const createFriendBday = async (req, res) => {
     const firstNameCheck = validateFirstName(req.body.firstName, 50)
+    const lastNameCheck = validateLastName(req.body.lastName, 100)
+
+    const nameValidationErrors = []
     if (!firstNameCheck.valid) {
-        return respondValidationError(req, res, firstNameCheck.message, '/friendsBday/new')
+        nameValidationErrors.push(firstNameCheck.message)
+    }
+    if (!lastNameCheck.valid) {
+        nameValidationErrors.push(lastNameCheck.message)
     }
 
-    const lastNameCheck = validateLastName(req.body.lastName, 100)
-    if (!lastNameCheck.valid) {
-        return respondValidationError(req, res, lastNameCheck.message, '/friendsBday/new')
+    if (nameValidationErrors.length) {
+        return respondValidationError(req, res, nameValidationErrors, '/friendsBday/new')
     }
 
     req.body.firstName = escapeApostropheForStorage(firstNameCheck.value)
@@ -248,8 +271,13 @@ const createFriendBday = async (req, res) => {
     await FriendsBdays.create(req.body)
 
     if (wantsHTML(req)) {
-        req.flash('info', 'The friend birthday entry was created.')
-        return res.redirect('/friendsBday')
+        return flashAndRedirect(
+            req,
+            res,
+            'info',
+            'The friend birthday entry was created.',
+            '/friendsBday'
+        )
     }
 
     const friendBday = await FriendsBdays.findOne(req.body)
@@ -263,21 +291,21 @@ const updateFriendBday = async (req, res) => {
     } = req
 
     const firstNameCheck = validateFirstName(req.body.firstName, 50)
+    const lastNameCheck = validateLastName(req.body.lastName, 100)
+
+    const nameValidationErrors = []
     if (!firstNameCheck.valid) {
-        return respondValidationError(
-            req,
-            res,
-            firstNameCheck.message,
-            `/friendsBday/edit/${friendBdayId}`
-        )
+        nameValidationErrors.push(firstNameCheck.message)
+    }
+    if (!lastNameCheck.valid) {
+        nameValidationErrors.push(lastNameCheck.message)
     }
 
-    const lastNameCheck = validateLastName(req.body.lastName, 100)
-    if (!lastNameCheck.valid) {
+    if (nameValidationErrors.length) {
         return respondValidationError(
             req,
             res,
-            lastNameCheck.message,
+            nameValidationErrors,
             `/friendsBday/edit/${friendBdayId}`
         )
     }
@@ -305,8 +333,13 @@ const updateFriendBday = async (req, res) => {
     }
 
     if (wantsHTML(req)) {
-        req.flash('info', 'The friend\'s birthday entry was updated.')
-        return res.redirect('/friendsBday')
+        return flashAndRedirect(
+            req,
+            res,
+            'info',
+            'The friend\'s birthday entry was updated.',
+            '/friendsBday'
+        )
     }
 
     res.status(StatusCodes.OK).json({ friendBday })
@@ -325,15 +358,19 @@ const deleteFriendBday = async (req, res) => {
 
     if (!friendBday) {
         if (wantsHTML(req)) {
-            req.flash('error', 'That entry no longer exists or was already deleted.')
-            return res.redirect('/friendsBday')
+            return flashAndRedirect(
+                req,
+                res,
+                'error',
+                'That entry no longer exists or was already deleted.',
+                '/friendsBday'
+            )
         }
         throw new NotFoundError(`No entry with id ${friendBdayId}`)
     }
 
     if (wantsHTML(req)) {
-        req.flash('info', 'The entry was deleted.')
-        return res.redirect('/friendsBday')
+        return flashAndRedirect(req, res, 'info', 'The entry was deleted.', '/friendsBday')
     }
 
     res.status(StatusCodes.OK).json({ msg: 'The entry was deleted.' })

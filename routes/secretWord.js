@@ -1,35 +1,55 @@
 const express = require("express");
-const { refreshToken } = require("host-csrf");
 const router = express.Router();
 
-router.get("/", (req, res) => {
+const renderSecretWordPage = (req, res, locals = {}) => {
   if (!req.session.secretWord) {
     req.session.secretWord = "syzygy";
   }
 
-  res.render("secretWord", {
+  return res.render("secretWord", {
     secretWord: req.session.secretWord,
-    errors: req.flash("error"),
-    info: req.flash("info"),
+    ...locals,
   });
+};
+
+router.get("/", (req, res) => {
+  return renderSecretWordPage(req, res);
 });
 
 router.post("/", (req, res) => {
   const nextWord = (req.body.secretWord || "").trim();
 
   if (!nextWord) {
-    req.flash("error", "Please enter a secret word.");
-  } else if (/['"]/.test(nextWord)) {
-    req.flash("error", "The secret word cannot contain single quotes or double quotes.");
-  } else if (nextWord.toUpperCase()[0] == "P") {
-    req.flash("error", "That word won't work!");
-    req.flash("error", "You can't use words that start with p.");
-  } else {
-    req.session.secretWord = nextWord;
-    req.flash("info", "The secret word was changed.");
+    return renderSecretWordPage(req, res, {
+      errors: ["Please enter a secret word."],
+    });
   }
 
-  refreshToken(req, res);
+  if (/['"]/.test(nextWord)) {
+    return renderSecretWordPage(req, res, {
+      errors: ["The secret word cannot contain single quotes or double quotes."],
+    });
+  }
+
+  if (/[^a-zA-Z \-]/.test(nextWord)) {
+    return renderSecretWordPage(req, res, {
+      errors: [
+        "The secret word may only contain letters, spaces, and hyphens.",
+      ],
+    });
+  }
+
+  if (nextWord.toUpperCase()[0] === "P") {
+    return renderSecretWordPage(req, res, {
+      errors: [
+        "That word won't work!",
+        "You can't use words that start with p.",
+      ],
+    });
+  }
+
+  req.session.secretWord = nextWord;
+  req.flash("info", "The secret word was changed.");
   return res.redirect("/secretWord");
 });
 

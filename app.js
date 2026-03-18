@@ -1,6 +1,7 @@
 const express = require("express");
 require("express-async-errors");
 require("dotenv").config({ quiet: true });
+
 if (process.env.NODE_ENV !== "production") {
   process.env.XS_COOKIE_DEVELOPMENT_MODE = "true";
 }
@@ -26,9 +27,6 @@ const passport = require("passport");
 
 // CSRF protection
 const { csrf, getToken } = require("host-csrf");
-
-// connectDB
-const connectDB = require("./db/connect");
 
 const app = express();
 app.disable("x-powered-by");
@@ -84,9 +82,13 @@ app.use(cors());
 app.use(xss());
 
 // Session Set-up for UI Pages
-const url = process.env.MONGO_URI;
+let mongoURL = process.env.MONGO_URI;
+if (process.env.NODE_ENV == "test") {
+  mongoURL = process.env.MONGO_URI_TEST;
+}
+
 const store = new MongoDBStore({
-  uri: url,
+  uri: mongoURL,
   collection: "mySessions",
 });
 
@@ -109,7 +111,11 @@ if (app.get("env") === "production") {
 app.use(session(sessionParms));
 
 // CSRF Middleware
-app.use(csrf());
+app.use(
+  csrf({
+    token_secret: process.env.SESSION_SECRET,
+  })
+);
 app.use((req, res, next) => {
   if (!res.locals._csrf) {
     getToken(req, res);
@@ -150,6 +156,16 @@ app.get("/", (req, res) => {
   res.render("index");
 });
 
+app.get("/multiply", (req, res) => {
+  const result = req.query.first * req.query.second;
+  if (result.isNaN) {
+    result = "NaN";
+  } else if (result == null) {
+    result = "null";
+  }
+  res.json({ result: result });
+});
+
 // Error Handler Middleware
 const notFoundMiddleware = require("./middleware/not-found");
 const errorHandlerMiddleware = require("./middleware/error-handler");
@@ -159,8 +175,9 @@ app.use(errorHandlerMiddleware);
 
 // Start Server
 const port = process.env.PORT || 3000;
-const start = async () => {
+/* const start = async () => {
   try {
+    const connectDB = require("./db/connect");
     await connectDB(process.env.MONGO_URI);
     const server = app.listen(port, () => {
       console.log(`Server is listening on port ${port}...`);
@@ -173,9 +190,23 @@ const start = async () => {
       }
       console.log(error);
     });
+    return server;
+  } catch (error) {
+    console.log(error);
+  }
+}; */
+
+const start = () => {
+  try {
+    require("./db/connect")(mongoURL);
+    return app.listen(port, () =>
+      console.log(`Server is listening on port ${port}...`),
+    );
   } catch (error) {
     console.log(error);
   }
 };
 
 start();
+
+module.exports = { app };
